@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LIFEOS - Life Memory</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <style>
+
+        .memory-page {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .memory-header {
+            margin-bottom: 25px;
+        }
+
+        .memory-header h1 {
+            margin-bottom: 5px;
+        }
+
+        .memory-header p {
+            opacity: 0.7;
+        }
+
+        .memory-form-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .memory-form-box h2 {
+            margin-top: 0;
+        }
+
+        .memory-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .memory-form input,
+        .memory-form textarea,
+        .memory-form select {
+
+            width: 100%;
+            box-sizing: border-box;
+
+            padding: 14px;
+
+            border: 1px solid #ddd;
+            border-radius: 12px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        .memory-form textarea {
+
+            min-height: 130px;
+
+            resize: vertical;
+        }
+
+        .memory-form button {
+
+            width: fit-content;
+
+            padding: 13px 25px;
+
+            border: none;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+        }
+
+        .memory-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(280px, 1fr));
+
+            gap: 20px;
+        }
+
+        .memory-card {
+
+            background: white;
+
+            padding: 22px;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 5px 20px rgba(0, 0, 0, 0.07);
+        }
+
+        .memory-card h3 {
+
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .memory-category {
+
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            background: #f1f5f9;
+
+            font-size: 13px;
+
+            margin-bottom: 15px;
+        }
+
+        .memory-content {
+
+            line-height: 1.6;
+
+            white-space: pre-wrap;
+
+            opacity: 0.85;
+        }
+
+        .memory-date {
+
+            margin-top: 15px;
+
+            font-size: 12px;
+
+            opacity: 0.55;
+        }
+
+        .delete-memory {
+
+            margin-top: 15px;
+
+            padding: 8px 12px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+        }
+
+        .empty-memory {
+
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 18px;
+
+            text-align: center;
+
+            opacity: 0.7;
+        }
+
+        @media (max-width: 700px) {
+
+            .memory-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- ========================= -->
+    <!-- SIDEBAR -->
+    <!-- ========================= -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            LIFEOS
+        </div>
+
+        <p class="tagline">
+            Your Personal Life OS
+        </p>
+
+
+        <nav>
+
+            <a href="/">
+                🏠 Dashboard
+            </a>
+
+            <a href="/ai">
+                🤖 AI Assistant
+            </a>
+
+            <a href="/tasks">
+                📋 Tasks
+            </a>
+
+            <a href="/calendar">
+                📅 Calendar
+            </a>
+
+            <a href="/goals">
+                🎯 Goals
+            </a>
+
+            <a
+                href="/memory"
+                class="active"
+            >
+                🧠 Life Memory
+            </a>
+
+            <a href="#">
+                💰 Finance
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a href="#">
+                ⚙ Settings
+            </a>
+
+            <a href="/logout">
+                🚪 Logout
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ========================= -->
+    <!-- MAIN -->
+    <!-- ========================= -->
+
+    <main class="main">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div></div>
+
+            <div class="profile">
+
+                <span>
+                    🔔
+                </span>
+
+                <span>
+                    👤 {{ user.name }}
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- ========================= -->
+        <!-- MEMORY CONTENT -->
+        <!-- ========================= -->
+
+        <section class="content memory-page">
+
+
+            <div class="memory-header">
+
+                <h1>
+                    🧠 Life Memory
+                </h1>
+
+                <p>
+                    Store important things you want LIFEOS
+                    to remember.
+                </p>
+
+            </div>
+
+
+            <!-- ========================= -->
+            <!-- ADD MEMORY -->
+            <!-- ========================= -->
+
+            <div class="memory-form-box">
+
+                <h2>
+                    🧠 Save a Memory
+                </h2>
+
+                <form
+                    method="POST"
+                    class="memory-form"
+                >
+
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Memory title..."
+                        required
+                    >
+
+
+                    <textarea
+                        name="content"
+                        placeholder="Write what you want LIFEOS to remember..."
+                        required
+                    ></textarea>
+
+
+                    <select name="category">
+
+                        <option value="General">
+                            General
+                        </option>
+
+                        <option value="Education">
+                            Education
+                        </option>
+
+                        <option value="Work">
+                            Work
+                        </option>
+
+                        <option value="Personal">
+                            Personal
+                        </option>
+
+                        <option value="Projects">
+                            Projects
+                        </option>
+
+                        <option value="Ideas">
+                            Ideas
+                        </option>
+
+                        <option value="Important">
+                            Important
+                        </option>
+
+                    </select>
+
+
+                    <button type="submit">
+                        🧠 Save Memory
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- ========================= -->
+            <!-- SAVED MEMORIES -->
+            <!-- ========================= -->
+
+            <h2>
+                Your Memories
+            </h2>
+
+
+            {% if memories %}
+
+                <div class="memory-grid">
+
+                    {% for item in memories %}
+
+                        <div class="memory-card">
+
+                            <span class="memory-category">
+                                {{ item.category }}
+                            </span>
+
+
+                            <h3>
+                                {{ item.title }}
+                            </h3>
+
+
+                            <div class="memory-content">
+                                {{ item.content }}
+                            </div>
+
+
+                            {% if item.created_at %}
+
+                                <div class="memory-date">
+
+                                    Saved:
+                                    {{ item.created_at.strftime("%d %B %Y, %H:%M") }}
+
+                                </div>
+
+                            {% endif %}
+
+
+                            <form
+                                method="POST"
+                                action="/memory/delete/{{ item.id }}"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="delete-memory"
+                                >
+                                    🗑️ Delete
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-memory">
+
+                    🧠 You don't have any memories yet.
+
+                    <br><br>
+
+                    Add your first memory above.
+
+                </div>
+
+            {% endif %}
+
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

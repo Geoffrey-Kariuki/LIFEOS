@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LIFEOS - Tasks</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <style>
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .task-title {
+            flex: 1;
+        }
+
+        .task-completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-actions form {
+            margin: 0;
+        }
+
+        .complete-button,
+        .delete-button {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .complete-button {
+            background: #198754;
+        }
+
+        .delete-button {
+            background: #dc3545;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- ========================= -->
+    <!-- SIDEBAR -->
+    <!-- ========================= -->
+
+    <aside class="sidebar">
+
+
+        <div class="logo">
+            LIFEOS
+        </div>
+
+
+        <p class="tagline">
+            Your Personal Life OS
+        </p>
+
+
+        <nav>
+
+
+            <!-- DASHBOARD -->
+
+            <a href="/">
+                🏠 Dashboard
+            </a>
+
+
+            <!-- AI ASSISTANT -->
+
+            <a href="/ai">
+                🤖 AI Assistant
+            </a>
+
+
+            <!-- TASKS -->
+
+            <a href="/tasks" class="active">
+                📋 Tasks
+            </a>
+
+
+            <!-- CALENDAR -->
+
+            <a href="/calendar">
+                📅 Calendar
+            </a>
+
+
+            <!-- GOALS -->
+
+            <a href="/goals">
+                🎯 Goals
+            </a>
+
+
+            <!-- LIFE MEMORY -->
+
+            <a href="/memory">
+                🧠 Life Memory
+            </a>
+
+
+            <!-- FINANCE -->
+
+            <a href="/finance">
+                💰 Finance
+            </a>
+
+
+        </nav>
+
+
+        <!-- ========================= -->
+        <!-- SIDEBAR BOTTOM -->
+        <!-- ========================= -->
+
+        <div class="sidebar-bottom">
+
+
+            <a href="/settings">
+                ⚙ Settings
+            </a>
+
+
+            <a href="/logout">
+                🚪 Logout
+            </a>
+
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- ========================= -->
+    <!-- MAIN -->
+    <!-- ========================= -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+
+            <div></div>
+
+
+            <div class="profile">
+
+
+                <span>
+                    🔔
+                </span>
+
+
+                <span>
+                    👤 {{ user.name }}
+                </span>
+
+
+            </div>
+
+
+        </header>
+
+
+
+        <!-- ========================= -->
+        <!-- CONTENT -->
+        <!-- ========================= -->
+
+        <section class="content">
+
+
+            <h1>
+                📋 My Tasks
+            </h1>
+
+
+            <p class="subtitle">
+                Organize what you need to accomplish.
+            </p>
+
+
+
+            <!-- ========================= -->
+            <!-- ADD TASK -->
+            <!-- ========================= -->
+
+            <div class="ai-box">
+
+
+                <div class="ai-icon">
+                    ➕
+                </div>
+
+
+                <form
+                    class="ai-input"
+                    method="POST"
+                    action="/tasks"
+                >
+
+
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="What do you need to do?"
+                        required
+                    >
+
+
+                    <button type="submit">
+                        Add Task
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+
+
+            <!-- ========================= -->
+            <!-- TASK LIST -->
+            <!-- ========================= -->
+
+            <h2>
+                Your Tasks
+            </h2>
+
+
+            <div class="memory-section">
+
+
+                <div class="memory-list">
+
+
+                    {% if tasks %}
+
+
+                        {% for task in tasks %}
+
+
+                            <div class="task-item">
+
+
+                                <!-- TASK TITLE -->
+
+                                <div
+                                    class="
+                                        task-title
+                                        {% if task.completed %}
+                                            task-completed
+                                        {% endif %}
+                                    "
+                                >
+
+
+                                    {% if task.completed %}
+
+                                        ☑
+
+                                    {% else %}
+
+                                        ☐
+
+                                    {% endif %}
+
+
+                                    {{ task.title }}
+
+
+                                </div>
+
+
+
+                                <!-- ========================= -->
+                                <!-- TASK ACTIONS -->
+                                <!-- ========================= -->
+
+                                <div class="task-actions">
+
+
+                                    <!-- COMPLETE / UNDO -->
+
+                                    <form
+                                        method="POST"
+                                        action="/tasks/{{ task.id }}/complete"
+                                    >
+
+
+                                        <button
+                                            type="submit"
+                                            class="complete-button"
+                                        >
+
+
+                                            {% if task.completed %}
+
+                                                Undo
+
+                                            {% else %}
+
+                                                Complete
+
+                                            {% endif %}
+
+
+                                        </button>
+
+
+                                    </form>
+
+
+
+                                    <!-- DELETE -->
+
+                                    <form
+                                        method="POST"
+                                        action="/tasks/{{ task.id }}/delete"
+                                        onsubmit="return confirm('Delete this task?');"
+                                    >
+
+
+                                        <button
+                                            type="submit"
+                                            class="delete-button"
+                                        >
+
+                                            Delete
+
+                                        </button>
+
+
+                                    </form>
+
+
+                                </div>
+
+
+                            </div>
+
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+
+                        <div>
+
+                            📋 You don't have any tasks yet.
+
+                        </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+</div>
+
+
+</body>
+
+</html>

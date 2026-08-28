@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LIFEOS - Goals</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <style>
+
+        /* =========================
+           GOALS PAGE
+        ========================= */
+
+        .goals-page {
+
+            max-width: 1200px;
+
+            margin: auto;
+
+        }
+
+
+        .goals-header {
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .goals-header h1 {
+
+            margin-bottom: 6px;
+
+        }
+
+
+        .goals-header p {
+
+            opacity: 0.65;
+
+        }
+
+
+        /* =========================
+           ADD GOAL
+        ========================= */
+
+        .goal-form-box {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 5px 25px rgba(0,0,0,0.07);
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .goal-form-box h2 {
+
+            margin-top: 0;
+
+        }
+
+
+        .goal-form {
+
+            display: flex;
+
+            gap: 12px;
+
+        }
+
+
+        .goal-form input {
+
+            flex: 1;
+
+            padding: 14px;
+
+            border: 1px solid #ddd;
+
+            border-radius: 12px;
+
+            font-size: 15px;
+
+            box-sizing: border-box;
+
+        }
+
+
+        .goal-form button {
+
+            padding: 14px 22px;
+
+            border: none;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+        }
+
+
+        /* =========================
+           SUMMARY
+        ========================= */
+
+        .goal-summary {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .summary-card {
+
+            background: white;
+
+            padding: 22px;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 5px 20px rgba(0,0,0,0.07);
+
+        }
+
+
+        .summary-card h3 {
+
+            margin: 0;
+
+            font-size: 14px;
+
+            opacity: 0.6;
+
+        }
+
+
+        .summary-number {
+
+            font-size: 30px;
+
+            font-weight: bold;
+
+            margin-top: 8px;
+
+        }
+
+
+        /* =========================
+           GOAL LIST
+        ========================= */
+
+        .goals-box {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 5px 25px rgba(0,0,0,0.07);
+
+        }
+
+
+        .goals-box h2 {
+
+            margin-top: 0;
+
+        }
+
+
+        .goal-card {
+
+            padding: 20px 0;
+
+            border-bottom: 1px solid #eee;
+
+        }
+
+
+        .goal-card:last-child {
+
+            border-bottom: none;
+
+        }
+
+
+        .goal-top {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .goal-name {
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+        }
+
+
+        .goal-completed {
+
+            text-decoration: line-through;
+
+            opacity: 0.5;
+
+        }
+
+
+        .goal-status {
+
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+
+        }
+
+
+        .status-active {
+
+            background: #dbeafe;
+
+        }
+
+
+        .status-completed {
+
+            background: #dcfce7;
+
+        }
+
+
+        /* =========================
+           PROGRESS
+        ========================= */
+
+        .goal-progress {
+
+            width: 100%;
+
+            height: 10px;
+
+            background: #e5e7eb;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+        }
+
+
+        .goal-progress-bar {
+
+            height: 100%;
+
+            border-radius: 20px;
+
+            background: #6366f1;
+
+        }
+
+
+        .goal-progress-text {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-top: 7px;
+
+            font-size: 12px;
+
+            opacity: 0.6;
+
+        }
+
+
+        /* =========================
+           ACTIONS
+        ========================= */
+
+        .goal-actions {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 15px;
+
+        }
+
+
+        .goal-action {
+
+            display: inline-block;
+
+            padding: 8px 12px;
+
+            border-radius: 9px;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+        }
+
+
+        .complete-action {
+
+            background: #dcfce7;
+
+        }
+
+
+        .delete-action {
+
+            background: #fee2e2;
+
+        }
+
+
+        /* =========================
+           EMPTY
+        ========================= */
+
+        .empty-goals {
+
+            text-align: center;
+
+            padding: 50px 20px;
+
+            opacity: 0.6;
+
+        }
+
+
+        .empty-goals-icon {
+
+            font-size: 50px;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 750px) {
+
+            .goal-summary {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .goal-form {
+
+                flex-direction: column;
+
+            }
+
+
+            .goal-form button {
+
+                width: 100%;
+
+            }
+
+
+            .goal-top {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =========================
+         SIDEBAR
+    ========================= -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            LIFEOS
+        </div>
+
+        <p class="tagline">
+            Your Personal Life OS
+        </p>
+
+
+        <nav>
+
+            <a href="/">
+                🏠 Dashboard
+            </a>
+
+            <a href="/ai">
+                🤖 AI Assistant
+            </a>
+
+            <a href="/tasks">
+                📋 Tasks
+            </a>
+
+            <a href="/calendar">
+                📅 Calendar
+            </a>
+
+            <a
+                href="/goals"
+                class="active"
+            >
+                🎯 Goals
+            </a>
+
+            <a href="/memory">
+                🧠 Life Memory
+            </a>
+
+            <a href="/finance">
+                💰 Finance
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a href="#">
+                ⚙ Settings
+            </a>
+
+            <a href="/logout">
+                🚪 Logout
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================= -->
+
+    <main class="main">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div></div>
+
+            <div class="profile">
+
+                <span>
+                    🔔
+                </span>
+
+                <span>
+                    👤 {{ user.name }}
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             CONTENT
+        ========================= -->
+
+        <section class="content goals-page">
+
+
+            <!-- HEADER -->
+
+            <div class="goals-header">
+
+                <h1>
+                    🎯 My Goals
+                </h1>
+
+                <p>
+                    Turn your plans into achievements.
+                </p>
+
+            </div>
+
+
+            <!-- =========================
+                 ADD GOAL
+            ========================= -->
+
+            <div class="goal-form-box">
+
+                <h2>
+                    ➕ Create a New Goal
+                </h2>
+
+
+                <form
+                    method="POST"
+                    class="goal-form"
+                >
+
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="What do you want to achieve?"
+                        required
+                    >
+
+
+                    <button type="submit">
+                        🎯 Add Goal
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- =========================
+                 SUMMARY
+            ========================= -->
+
+            <div class="goal-summary">
+
+
+                <div class="summary-card">
+
+                    <h3>
+                        🎯 Total Goals
+                    </h3>
+
+                    <div class="summary-number">
+
+                        {{ goals|length }}
+
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <h3>
+                        🔄 Active Goals
+                    </h3>
+
+                    <div class="summary-number">
+
+                        {{ goals|selectattr("completed", "equalto", false)|list|length }}
+
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <h3>
+                        ✅ Completed Goals
+                    </h3>
+
+                    <div class="summary-number">
+
+                        {{ goals|selectattr("completed", "equalto", true)|list|length }}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =========================
+                 GOALS
+            ========================= -->
+
+            <div class="goals-box">
+
+                <h2>
+                    📋 Your Goals
+                </h2>
+
+
+                {% if goals %}
+
+
+                    {% for goal in goals %}
+
+
+                        <div class="goal-card">
+
+
+                            <!-- GOAL TITLE -->
+
+                            <div class="goal-top">
+
+
+                                <div class="goal-name">
+
+
+                                    {% if goal.completed %}
+
+                                        <span class="goal-completed">
+
+                                            ✅ {{ goal.title }}
+
+                                        </span>
+
+                                    {% else %}
+
+                                        🎯 {{ goal.title }}
+
+                                    {% endif %}
+
+
+                                </div>
+
+
+                                <!-- STATUS -->
+
+                                {% if goal.completed %}
+
+                                    <span class="goal-status status-completed">
+
+                                        ✅ Completed
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="goal-status status-active">
+
+                                        🔄 In Progress
+
+                                    </span>
+
+                                {% endif %}
+
+
+                            </div>
+
+
+                            <!-- =========================
+                                 PROGRESS BAR
+                            ========================= -->
+
+                            <div class="goal-progress">
+
+                                <div
+                                    class="goal-progress-bar"
+                                    style="width: {% if goal.completed %}100{% else %}35{% endif %}%;"
+                                ></div>
+
+                            </div>
+
+
+                            <!-- PROGRESS TEXT -->
+
+                            <div class="goal-progress-text">
+
+                                <span>
+                                    Progress
+                                </span>
+
+                                <span>
+
+                                    {% if goal.completed %}
+
+                                        100%
+
+                                    {% else %}
+
+                                        35%
+
+                                    {% endif %}
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- =========================
+                                 ACTIONS
+                            ========================= -->
+
+                            <div class="goal-actions">
+
+
+                                {% if not goal.completed %}
+
+                                    <a
+                                        href="/goals/complete/{{ goal.id }}"
+                                        class="goal-action complete-action"
+                                    >
+                                        ✅ Mark Complete
+                                    </a>
+
+                                {% endif %}
+
+
+                                <a
+                                    href="/goals/delete/{{ goal.id }}"
+                                    class="goal-action delete-action"
+                                    onclick="return confirm('Are you sure you want to delete this goal?');"
+                                >
+                                    🗑️ Delete
+                                </a>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    {% endfor %}
+
+
+                {% else %}
+
+
+                    <div class="empty-goals">
+
+                        <div class="empty-goals-icon">
+                            🎯
+                        </div>
+
+                        <h3>
+                            No goals yet
+                        </h3>
+
+                        <p>
+                            Create your first goal above
+                            and start turning your plans
+                            into achievements.
+                        </p>
+
+                    </div>
+
+
+                {% endif %}
+
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

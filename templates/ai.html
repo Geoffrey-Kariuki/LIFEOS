@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LIFEOS - AI Assistant</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <style>
+
+        /* ==================================================
+           AI PAGE
+        ================================================== */
+
+        .ai-page {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+
+        /* ==================================================
+           HEADER
+        ================================================== */
+
+        .ai-header {
+            margin-bottom: 25px;
+        }
+
+        .ai-header h1 {
+            margin-bottom: 7px;
+        }
+
+        .ai-header p {
+            opacity: 0.65;
+        }
+
+
+        /* ==================================================
+           AI CONTAINER
+        ================================================== */
+
+        .ai-container {
+            background: white;
+            border-radius: 22px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+        }
+
+
+        /* ==================================================
+           AI TOP
+        ================================================== */
+
+        .ai-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 22px 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ai-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 15px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .ai-top h2 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .ai-status {
+            margin-top: 4px;
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            margin-right: 5px;
+        }
+
+
+        /* ==================================================
+           CHAT AREA
+        ================================================== */
+
+        .chat-area {
+            min-height: 430px;
+            max-height: 550px;
+            overflow-y: auto;
+            padding: 25px;
+            background: #fafafa;
+        }
+
+
+        /* ==================================================
+           MESSAGES
+        ================================================== */
+
+        .message-row {
+            display: flex;
+            margin-bottom: 18px;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .message-row.ai {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 14px 17px;
+            border-radius: 17px;
+            line-height: 1.55;
+            white-space: pre-line;
+            font-size: 14px;
+        }
+
+        .message-row.user .message-bubble {
+            background: #2563eb;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-row.ai .message-bubble {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 5px;
+        }
+
+
+        /* ==================================================
+           WELCOME MESSAGE
+        ================================================== */
+
+        .welcome-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .welcome-icon {
+            font-size: 24px;
+        }
+
+
+        /* ==================================================
+           QUICK COMMANDS
+        ================================================== */
+
+        .quick-section {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .quick-section h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            opacity: 0.65;
+        }
+
+        .quick-commands {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .quick-command {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 9px 13px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .quick-command:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+
+        /* ==================================================
+           INPUT AREA
+        ================================================== */
+
+        .chat-input-area {
+            padding: 20px 25px 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #dbe2ea;
+            border-radius: 13px;
+            padding: 14px 16px;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .send-button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 0 22px;
+            border-radius: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .send-button:hover {
+            opacity: 0.9;
+        }
+
+
+        /* ==================================================
+           CLEAR BUTTON
+        ================================================== */
+
+        .ai-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-action-button {
+            border: none;
+            background: #f8fafc;
+            padding: 8px 11px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .ai-action-button:hover {
+            background: #e2e8f0;
+        }
+
+
+        /* ==================================================
+           TYPING INDICATOR
+        ================================================== */
+
+        .typing {
+            display: none;
+            padding: 10px 0;
+            opacity: 0.6;
+            font-size: 13px;
+        }
+
+
+        /* ==================================================
+           MOBILE
+        ================================================== */
+
+        @media (max-width: 700px) {
+
+            .chat-area {
+                min-height: 380px;
+            }
+
+            .message-bubble {
+                max-width: 88%;
+            }
+
+            .chat-form {
+                flex-direction: column;
+            }
+
+            .send-button {
+                padding: 13px;
+            }
+
+            .ai-top {
+                padding: 18px;
+            }
+
+            .chat-area {
+                padding: 18px;
+            }
+
+            .quick-section,
+            .chat-input-area {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- ==================================================
+         SIDEBAR
+    ================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            LIFEOS
+        </div>
+
+        <p class="tagline">
+            Your Personal Life OS
+        </p>
+
+
+        <nav>
+
+            <a href="/">
+                🏠 Dashboard
+            </a>
+
+            <a
+                href="/ai"
+                class="active"
+            >
+                🤖 AI Assistant
+            </a>
+
+            <a href="/tasks">
+                📋 Tasks
+            </a>
+
+            <a href="/calendar">
+                📅 Calendar
+            </a>
+
+            <a href="/goals">
+                🎯 Goals
+            </a>
+
+            <a href="/memory">
+                🧠 Life Memory
+            </a>
+
+            <a href="/finance">
+                💰 Finance
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a href="/settings">
+                ⚙ Settings
+            </a>
+
+            <a href="/logout">
+                🚪 Logout
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ==================================================
+         MAIN
+    ================================================== -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div></div>
+
+            <div class="profile">
+
+                <span>
+                    🔔
+                </span>
+
+                <span>
+                    👤 {{ user.name }}
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==================================================
+             AI PAGE
+        ================================================== -->
+
+        <section class="content ai-page">
+
+
+            <div class="ai-header">
+
+                <h1>
+                    🤖 LIFEOS AI Assistant
+                </h1>
+
+                <p>
+                    Your intelligent companion for managing
+                    your life.
+                </p>
+
+            </div>
+
+
+            <!-- ==================================================
+                 AI CONTAINER
+            ================================================== -->
+
+            <div class="ai-container">
+
+
+                <!-- AI HEADER -->
+
+                <div class="ai-top">
+
+                    <div class="ai-avatar">
+                        🤖
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            LIFEOS Assistant
+                        </h2>
+
+                        <div class="ai-status">
+
+                            <span class="status-dot"></span>
+
+                            Online
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="ai-actions">
+
+                        <button
+                            type="button"
+                            class="ai-action-button"
+                            onclick="clearChat()"
+                        >
+                            🗑 Clear
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     CHAT
+                ================================================== -->
+
+                <div
+                    class="chat-area"
+                    id="chatArea"
+                >
+
+
+                    <!-- WELCOME -->
+
+                    <div class="message-row ai">
+
+                        <div class="message-bubble">
+
+                            <div class="welcome-message">
+
+                                <div class="welcome-icon">
+                                    🤖
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Hello {{ user.name }}! 👋
+                                    </strong>
+
+                                    <br><br>
+
+                                    I'm your LIFEOS Assistant.
+
+                                    <br><br>
+
+                                    I can help you manage:
+
+                                    <br><br>
+
+                                    📋 Tasks
+                                    <br>
+                                    🎯 Goals
+                                    <br>
+                                    💰 Finances
+                                    <br>
+                                    📅 Calendar
+                                    <br>
+                                    🧠 Life Memory
+                                    <br>
+                                    🚀 Productivity
+
+                                    <br><br>
+
+                                    Try something like:
+
+                                    <br><br>
+
+                                    <strong>
+                                        "Add task Study Python"
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SERVER RESPONSE -->
+
+                    {% if message %}
+
+                        <div class="message-row user">
+
+                            <div class="message-bubble">
+
+                                {{ message }}
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if response %}
+
+                        <div class="message-row ai">
+
+                            <div class="message-bubble">
+
+                                {{ response }}
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- TYPING -->
+
+                    <div
+                        class="typing"
+                        id="typing"
+                    >
+
+                        🤖 LIFEOS is thinking...
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- ==================================================
+                     QUICK COMMANDS
+                ================================================== -->
+
+                <div class="quick-section">
+
+                    <h3>
+                        Try a command
+                    </h3>
+
+
+                    <div class="quick-commands">
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('Add task Study Python')"
+                        >
+                            📋 Add task
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('Add goal Learn AI')"
+                        >
+                            🎯 Add goal
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('How many tasks do I have?')"
+                        >
+                            📊 My tasks
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('How many goals do I have?')"
+                        >
+                            🎯 My goals
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('What is my balance?')"
+                        >
+                            💰 My balance
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('Give me productivity advice')"
+                        >
+                            🚀 Productivity
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quick-command"
+                            onclick="setCommand('Help')"
+                        >
+                            ❓ Help
+                        </button>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     INPUT
+                ================================================== -->
+
+                <div class="chat-input-area">
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('ai') }}"
+                        class="chat-form"
+                        onsubmit="showTyping()"
+                    >
+
+
+                        <input
+                            type="text"
+                            name="message"
+                            id="messageInput"
+                            class="chat-input"
+                            placeholder="Ask LIFEOS anything..."
+                            autocomplete="off"
+                            required
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="send-button"
+                        >
+                            Send ➤
+                        </button>
+
+
+                    </form>
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+
+
+/* ==================================================
+   SET COMMAND
+================================================== */
+
+function setCommand(command) {
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+    input.value = command;
+
+    input.focus();
+
+}
+
+
+/* ==================================================
+   SHOW TYPING
+================================================== */
+
+function showTyping() {
+
+    const typing =
+        document.getElementById(
+            "typing"
+        );
+
+    if (typing) {
+
+        typing.style.display = "block";
+
+    }
+
+}
+
+
+/* ==================================================
+   CLEAR CHAT
+================================================== */
+
+function clearChat() {
+
+    const chat =
+        document.getElementById(
+            "chatArea"
+        );
+
+    if (!chat) {
+        return;
+    }
+
+    const messages =
+        chat.querySelectorAll(
+            ".message-row.user, .message-row.ai"
+        );
+
+    messages.forEach(
+        function(message, index) {
+
+            if (index > 0) {
+
+                message.remove();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ==================================================
+   ENTER TO SEND
+================================================== */
+
+document
+    .getElementById("messageInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter"
+                && !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                this.form.submit();
+
+            }
+
+        }
+    );
+
+
+/* ==================================================
+   SCROLL CHAT TO BOTTOM
+================================================== */
+
+window.addEventListener(
+    "load",
+    function() {
+
+        const chat =
+            document.getElementById(
+                "chatArea"
+            );
+
+        if (chat) {
+
+            chat.scrollTop =
+                chat.scrollHeight;
+
+        }
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>
