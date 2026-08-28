@@ -18,23 +18,37 @@ from models import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
+
 # ============================================================
 # APP CONFIGURATION
 # ============================================================
 
 if getattr(sys, "frozen", False):
-    # Packaged EXE
+
+    # --------------------------------------------------------
+    # PACKAGED EXE
+    # --------------------------------------------------------
+
     BASE_DIR = sys._MEIPASS
 
-    # Store LIFEOS data in Windows AppData
     USER_DATA_DIR = os.path.join(
-        os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
+        os.environ.get(
+            "LOCALAPPDATA",
+            os.path.expanduser("~")
+        ),
         "LIFEOS"
     )
 
 else:
-    # Normal Python development
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # --------------------------------------------------------
+    # NORMAL PYTHON / DEVELOPMENT
+    # --------------------------------------------------------
+
+    BASE_DIR = os.path.dirname(
+        os.path.abspath(__file__)
+    )
+
     USER_DATA_DIR = BASE_DIR
 
 
@@ -42,13 +56,30 @@ else:
 # APPLICATION PATHS
 # ============================================================
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(
+    BASE_DIR,
+    "templates"
+)
 
-INSTANCE_DIR = os.path.join(USER_DATA_DIR, "instance")
-os.makedirs(INSTANCE_DIR, exist_ok=True)
+STATIC_DIR = os.path.join(
+    BASE_DIR,
+    "static"
+)
 
-DATABASE_PATH = os.path.join(INSTANCE_DIR, "lifeos.db")
+INSTANCE_DIR = os.path.join(
+    USER_DATA_DIR,
+    "instance"
+)
+
+os.makedirs(
+    INSTANCE_DIR,
+    exist_ok=True
+)
+
+DATABASE_PATH = os.path.join(
+    INSTANCE_DIR,
+    "lifeos.db"
+)
 
 
 # ============================================================
@@ -61,30 +92,78 @@ app = Flask(
     static_folder=STATIC_DIR
 )
 
+
+# ============================================================
+# SECRET KEY
+# ============================================================
+
 app.secret_key = os.environ.get(
     "LIFEOS_SECRET_KEY",
     "dev-only-secret-change-in-production"
 )
 
+
 # ============================================================
 # DATABASE
 # ============================================================
 
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "sqlite:///" + DATABASE_PATH.replace("\\", "/")
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL"
 )
 
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# ------------------------------------------------------------
+# RENDER / POSTGRESQL
+# ------------------------------------------------------------
+
+if DATABASE_URL:
+
+    # Some PostgreSQL providers may return the older
+    # postgres:// format.
+    #
+    # SQLAlchemy expects postgresql://
+
+    if DATABASE_URL.startswith("postgres://"):
+
+        DATABASE_URL = DATABASE_URL.replace(
+            "postgres://",
+            "postgresql://",
+            1
+        )
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
+
+# ------------------------------------------------------------
+# LOCAL / EXE SQLITE
+# ------------------------------------------------------------
+
+else:
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///"
+        + DATABASE_PATH.replace("\\", "/")
+    )
+
+
+app.config[
+    "SQLALCHEMY_TRACK_MODIFICATIONS"
+] = False
+
+
+# ============================================================
+# INITIALIZE DATABASE
+# ============================================================
 
 db.init_app(app)
 
 
-
 # ============================================================
-# DATABASE INITIALIZATION
+# CREATE DATABASE TABLES
 # ============================================================
 
 with app.app_context():
+
     db.create_all()
 
 
@@ -94,15 +173,26 @@ with app.app_context():
 
 def get_current_user():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
+
         return None
 
-    user = db.session.get(User, user_id)
+    user = db.session.get(
+        User,
+        user_id
+    )
 
     if user is None:
-        session.pop("user_id", None)
+
+        session.pop(
+            "user_id",
+            None
+        )
+
         return None
 
     return user
@@ -123,7 +213,10 @@ def home():
     user = get_current_user()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     tasks = Task.query.filter_by(
         user_id=user.id
@@ -144,13 +237,15 @@ def home():
     income = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "income" or t.transaction_type == "income"
+        if t.type == "income"
+        or t.transaction_type == "income"
     )
 
     expenses = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "expense" or t.transaction_type == "expense"
+        if t.type == "expense"
+        or t.transaction_type == "expense"
     )
 
     balance = income - expenses
@@ -172,14 +267,28 @@ def home():
 # REGISTER
 # ============================================================
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route(
+    "/register",
+    methods=["GET", "POST"]
+)
 def register():
 
     if request.method == "POST":
 
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
 
         if not name or not email or not password:
 
@@ -202,26 +311,41 @@ def register():
         new_user = User(
             name=name,
             email=email,
-            password=generate_password_hash(password)
+            password=generate_password_hash(
+                password
+            )
         )
 
-        db.session.add(new_user)
+        db.session.add(
+            new_user
+        )
+
         db.session.commit()
 
-        return redirect(url_for("login"))
+        return redirect(
+            url_for("login")
+        )
 
-    return render_template("register.html")
+    return render_template(
+        "register.html"
+    )
 
 
 # ============================================================
 # LOGIN
 # ============================================================
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route(
+    "/login",
+    methods=["GET", "POST"]
+)
 def login():
 
     if session.get("user_id"):
-        return redirect(url_for("home"))
+
+        return redirect(
+            url_for("home")
+        )
 
     if request.method == "POST":
 
@@ -246,14 +370,18 @@ def login():
 
             session["user_id"] = user.id
 
-            return redirect(url_for("home"))
+            return redirect(
+                url_for("home")
+            )
 
         return render_template(
             "login.html",
             error="Incorrect email or password."
         )
 
-    return render_template("login.html")
+    return render_template(
+        "login.html"
+    )
 
 
 # ============================================================
@@ -265,20 +393,28 @@ def logout():
 
     session.clear()
 
-    return redirect(url_for("login"))
+    return redirect(
+        url_for("login")
+    )
 
 
 # ============================================================
 # TASKS
 # ============================================================
 
-@app.route("/tasks", methods=["GET", "POST"])
+@app.route(
+    "/tasks",
+    methods=["GET", "POST"]
+)
 def tasks():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if request.method == "POST":
 
@@ -295,10 +431,15 @@ def tasks():
                 user_id=user.id
             )
 
-            db.session.add(task)
+            db.session.add(
+                task
+            )
+
             db.session.commit()
 
-        return redirect(url_for("tasks"))
+        return redirect(
+            url_for("tasks")
+        )
 
     tasks_list = Task.query.filter_by(
         user_id=user.id
@@ -317,13 +458,18 @@ def tasks():
 # COMPLETE TASK
 # ============================================================
 
-@app.route("/tasks/<int:task_id>/complete")
+@app.route(
+    "/tasks/<int:task_id>/complete"
+)
 def complete_task(task_id):
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     task = Task.query.filter_by(
         id=task_id,
@@ -336,7 +482,9 @@ def complete_task(task_id):
 
         db.session.commit()
 
-    return redirect(url_for("tasks"))
+    return redirect(
+        url_for("tasks")
+    )
 
 
 # ============================================================
@@ -352,7 +500,10 @@ def delete_task(task_id):
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     task = Task.query.filter_by(
         id=task_id,
@@ -361,23 +512,34 @@ def delete_task(task_id):
 
     if task:
 
-        db.session.delete(task)
+        db.session.delete(
+            task
+        )
+
         db.session.commit()
 
-    return redirect(url_for("tasks"))
+    return redirect(
+        url_for("tasks")
+    )
 
 
 # ============================================================
 # GOALS
 # ============================================================
 
-@app.route("/goals", methods=["GET", "POST"])
+@app.route(
+    "/goals",
+    methods=["GET", "POST"]
+)
 def goals():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if request.method == "POST":
 
@@ -394,10 +556,15 @@ def goals():
                 user_id=user.id
             )
 
-            db.session.add(goal)
+            db.session.add(
+                goal
+            )
+
             db.session.commit()
 
-        return redirect(url_for("goals"))
+        return redirect(
+            url_for("goals")
+        )
 
     goals_list = Goal.query.filter_by(
         user_id=user.id
@@ -416,13 +583,18 @@ def goals():
 # COMPLETE GOAL
 # ============================================================
 
-@app.route("/goals/complete/<int:goal_id>")
+@app.route(
+    "/goals/complete/<int:goal_id>"
+)
 def complete_goal(goal_id):
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     goal = Goal.query.filter_by(
         id=goal_id,
@@ -435,7 +607,9 @@ def complete_goal(goal_id):
 
         db.session.commit()
 
-    return redirect(url_for("goals"))
+    return redirect(
+        url_for("goals")
+    )
 
 
 # ============================================================
@@ -451,7 +625,10 @@ def delete_goal(goal_id):
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     goal = Goal.query.filter_by(
         id=goal_id,
@@ -460,23 +637,34 @@ def delete_goal(goal_id):
 
     if goal:
 
-        db.session.delete(goal)
+        db.session.delete(
+            goal
+        )
+
         db.session.commit()
 
-    return redirect(url_for("goals"))
+    return redirect(
+        url_for("goals")
+    )
 
 
 # ============================================================
 # CALENDAR
 # ============================================================
 
-@app.route("/calendar", methods=["GET", "POST"])
+@app.route(
+    "/calendar",
+    methods=["GET", "POST"]
+)
 def calendar():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if request.method == "POST":
 
@@ -512,7 +700,9 @@ def calendar():
 
         if not title:
 
-            return redirect(url_for("calendar"))
+            return redirect(
+                url_for("calendar")
+            )
 
         try:
 
@@ -547,10 +737,15 @@ def calendar():
             user_id=user.id
         )
 
-        db.session.add(event)
+        db.session.add(
+            event
+        )
+
         db.session.commit()
 
-        return redirect(url_for("calendar"))
+        return redirect(
+            url_for("calendar")
+        )
 
     events = CalendarEvent.query.filter_by(
         user_id=user.id
@@ -594,7 +789,10 @@ def delete_calendar_event(event_id):
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     event = CalendarEvent.query.filter_by(
         id=event_id,
@@ -603,23 +801,34 @@ def delete_calendar_event(event_id):
 
     if event:
 
-        db.session.delete(event)
+        db.session.delete(
+            event
+        )
+
         db.session.commit()
 
-    return redirect(url_for("calendar"))
+    return redirect(
+        url_for("calendar")
+    )
 
 
 # ============================================================
 # LIFE MEMORY
 # ============================================================
 
-@app.route("/memory", methods=["GET", "POST"])
+@app.route(
+    "/memory",
+    methods=["GET", "POST"]
+)
 def memory():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if request.method == "POST":
 
@@ -647,10 +856,15 @@ def memory():
                 user_id=user.id
             )
 
-            db.session.add(memory_item)
+            db.session.add(
+                memory_item
+            )
+
             db.session.commit()
 
-        return redirect(url_for("memory"))
+        return redirect(
+            url_for("memory")
+        )
 
     memories = Memory.query.filter_by(
         user_id=user.id
@@ -678,7 +892,10 @@ def delete_memory(memory_id):
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     memory_item = Memory.query.filter_by(
         id=memory_id,
@@ -687,23 +904,34 @@ def delete_memory(memory_id):
 
     if memory_item:
 
-        db.session.delete(memory_item)
+        db.session.delete(
+            memory_item
+        )
+
         db.session.commit()
 
-    return redirect(url_for("memory"))
+    return redirect(
+        url_for("memory")
+    )
 
 
 # ============================================================
 # FINANCE
 # ============================================================
 
-@app.route("/finance", methods=["GET", "POST"])
+@app.route(
+    "/finance",
+    methods=["GET", "POST"]
+)
 def finance():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     # --------------------------------------------------------
     # ADD TRANSACTION
@@ -736,34 +964,10 @@ def finance():
             ""
         ).strip()
 
-        # Validate transaction type
-
         if transaction_type not in [
             "income",
             "expense"
         ]:
-
-            return render_template(
-                "finance.html",
-                user=user,
-                transactions=Transaction.query.filter_by(
-                    user_id=user.id
-                ).order_by(
-                    Transaction.id.desc()
-                ).all(),
-                income=0,
-                expenses=0,
-                balance=0,
-                error="Transaction type must be income or expense."
-            )
-
-        # Validate amount
-
-        try:
-
-            amount = float(amount_text)
-
-        except (ValueError, TypeError):
 
             transactions = Transaction.query.filter_by(
                 user_id=user.id
@@ -774,13 +978,60 @@ def finance():
             income = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "income" or t.transaction_type == "income"
+                if t.type == "income"
+                or t.transaction_type == "income"
             )
 
             expenses = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "expense" or t.transaction_type == "expense"
+                if t.type == "expense"
+                or t.transaction_type == "expense"
+            )
+
+            return render_template(
+                "finance.html",
+                user=user,
+                transactions=transactions,
+                income=income,
+                expenses=expenses,
+                balance=income - expenses,
+                error="Transaction type must be income or expense."
+            )
+
+        # ----------------------------------------------------
+        # AMOUNT
+        # ----------------------------------------------------
+
+        try:
+
+            amount = float(
+                amount_text
+            )
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            transactions = Transaction.query.filter_by(
+                user_id=user.id
+            ).order_by(
+                Transaction.id.desc()
+            ).all()
+
+            income = sum(
+                float(t.amount)
+                for t in transactions
+                if t.type == "income"
+                or t.transaction_type == "income"
+            )
+
+            expenses = sum(
+                float(t.amount)
+                for t in transactions
+                if t.type == "expense"
+                or t.transaction_type == "expense"
             )
 
             return render_template(
@@ -795,7 +1046,9 @@ def finance():
 
         if amount <= 0:
 
-            return redirect(url_for("finance"))
+            return redirect(
+                url_for("finance")
+            )
 
         # ----------------------------------------------------
         # DATE
@@ -824,29 +1077,27 @@ def finance():
 
         transaction = Transaction(
             amount=amount,
-
-            # Both fields are populated because your current
-            # model contains both columns.
             transaction_type=transaction_type,
             type=transaction_type,
-
             category=category or "General",
-
             description=description,
-
             transaction_date=transaction_datetime,
-
             user_id=user.id
         )
 
-        db.session.add(transaction)
+        db.session.add(
+            transaction
+        )
+
         db.session.commit()
 
-        return redirect(url_for("finance"))
+        return redirect(
+            url_for("finance")
+        )
 
-    # ========================================================
+    # --------------------------------------------------------
     # GET FINANCE DATA
-    # ========================================================
+    # --------------------------------------------------------
 
     transactions = Transaction.query.filter_by(
         user_id=user.id
@@ -857,13 +1108,15 @@ def finance():
     income = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "income" or t.transaction_type == "income"
+        if t.type == "income"
+        or t.transaction_type == "income"
     )
 
     expenses = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "expense" or t.transaction_type == "expense"
+        if t.type == "expense"
+        or t.transaction_type == "expense"
     )
 
     balance = income - expenses
@@ -891,7 +1144,10 @@ def delete_transaction(transaction_id):
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     transaction = Transaction.query.filter_by(
         id=transaction_id,
@@ -900,54 +1156,73 @@ def delete_transaction(transaction_id):
 
     if transaction:
 
-        db.session.delete(transaction)
+        db.session.delete(
+            transaction
+        )
+
         db.session.commit()
 
-    return redirect(url_for("finance"))
+    return redirect(
+        url_for("finance")
+    )
+
 
 # ============================================================
 # SETTINGS
 # ============================================================
 
-@app.route("/settings", methods=["GET", "POST"])
+@app.route(
+    "/settings",
+    methods=["GET", "POST"]
+)
 def settings():
 
     user = get_current_user()
 
-    # User must be logged in
     if user is None:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     success = None
     error = None
 
-    # ========================================================
-    # HANDLE POST REQUEST
-    # ========================================================
-
     if request.method == "POST":
 
-        action = request.form.get("action", "profile").strip()
+        action = request.form.get(
+            "action",
+            "profile"
+        ).strip()
 
-        # ====================================================
-        # UPDATE PROFILE
-        # ====================================================
+        # ----------------------------------------------------
+        # PROFILE
+        # ----------------------------------------------------
 
         if action == "profile":
 
-            name = request.form.get("name", "").strip()
-            email = request.form.get("email", "").strip().lower()
+            name = request.form.get(
+                "name",
+                ""
+            ).strip()
+
+            email = request.form.get(
+                "email",
+                ""
+            ).strip().lower()
 
             if not name:
+
                 error = "Name cannot be empty."
 
             elif not email:
-                error = "Email address cannot be empty."
+
+                error = (
+                    "Email address cannot be empty."
+                )
 
             else:
 
-                # Check whether another account already uses
-                # this email address.
                 existing_user = User.query.filter(
                     User.email == email,
                     User.id != user.id
@@ -970,9 +1245,9 @@ def settings():
                         "Your profile has been updated successfully."
                     )
 
-        # ====================================================
-        # CHANGE PASSWORD
-        # ====================================================
+        # ----------------------------------------------------
+        # PASSWORD
+        # ----------------------------------------------------
 
         elif action == "password":
 
@@ -991,24 +1266,20 @@ def settings():
                 ""
             )
 
-            # ------------------------------------------------
-            # Validate current password
-            # ------------------------------------------------
-
             if not current_password:
 
-                error = "Please enter your current password."
+                error = (
+                    "Please enter your current password."
+                )
 
             elif not check_password_hash(
                 user.password,
                 current_password
             ):
 
-                error = "Current password is incorrect."
-
-            # ------------------------------------------------
-            # Validate new password
-            # ------------------------------------------------
+                error = (
+                    "Current password is incorrect."
+                )
 
             elif len(new_password) < 6:
 
@@ -1017,13 +1288,11 @@ def settings():
                     "6 characters."
                 )
 
-            # ------------------------------------------------
-            # Confirm password
-            # ------------------------------------------------
-
             elif new_password != confirm_password:
 
-                error = "New passwords do not match."
+                error = (
+                    "New passwords do not match."
+                )
 
             else:
 
@@ -1039,11 +1308,9 @@ def settings():
 
         else:
 
-            error = "Invalid settings action."
-
-    # ========================================================
-    # SETTINGS PAGE
-    # ========================================================
+            error = (
+                "Invalid settings action."
+            )
 
     return render_template(
         "settings.html",
@@ -1052,17 +1319,24 @@ def settings():
         error=error
     )
 
+
 # ============================================================
 # AI ASSISTANT
 # ============================================================
 
-@app.route("/ai", methods=["GET", "POST"])
+@app.route(
+    "/ai",
+    methods=["GET", "POST"]
+)
 def ai():
 
     user = login_required()
 
     if not user:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     response = None
     message = ""
@@ -1076,9 +1350,9 @@ def ai():
 
         lower_message = message.lower()
 
-        # ====================================================
+        # ----------------------------------------------------
         # EMPTY
-        # ====================================================
+        # ----------------------------------------------------
 
         if not message:
 
@@ -1086,9 +1360,9 @@ def ai():
                 "Please type a message first. 🤖"
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # HELLO
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "hello" in lower_message
@@ -1103,9 +1377,9 @@ def ai():
                 "memories and finances."
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # ADD TASK
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "add task" in lower_message
@@ -1117,7 +1391,9 @@ def ai():
 
             if "add task" in lower_message:
 
-                position = lower_message.find("add task")
+                position = lower_message.find(
+                    "add task"
+                )
 
                 task_title = message[
                     position + len("add task"):
@@ -1125,7 +1401,9 @@ def ai():
 
             elif "create task" in lower_message:
 
-                position = lower_message.find("create task")
+                position = lower_message.find(
+                    "create task"
+                )
 
                 task_title = message[
                     position + len("create task"):
@@ -1133,13 +1411,17 @@ def ai():
 
             elif "new task" in lower_message:
 
-                position = lower_message.find("new task")
+                position = lower_message.find(
+                    "new task"
+                )
 
                 task_title = message[
                     position + len("new task"):
                 ].strip()
 
-            task_title = task_title.strip(" :.-")
+            task_title = task_title.strip(
+                " :.-"
+            )
 
             if task_title:
 
@@ -1149,7 +1431,10 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(task)
+                db.session.add(
+                    task
+                )
+
                 db.session.commit()
 
                 response = (
@@ -1166,9 +1451,9 @@ def ai():
                     "Add task Study Python"
                 )
 
-        # ====================================================
+        # ----------------------------------------------------
         # ADD GOAL
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "add goal" in lower_message
@@ -1180,7 +1465,9 @@ def ai():
 
             if "add goal" in lower_message:
 
-                position = lower_message.find("add goal")
+                position = lower_message.find(
+                    "add goal"
+                )
 
                 goal_title = message[
                     position + len("add goal"):
@@ -1188,7 +1475,9 @@ def ai():
 
             elif "create goal" in lower_message:
 
-                position = lower_message.find("create goal")
+                position = lower_message.find(
+                    "create goal"
+                )
 
                 goal_title = message[
                     position + len("create goal"):
@@ -1196,13 +1485,17 @@ def ai():
 
             elif "new goal" in lower_message:
 
-                position = lower_message.find("new goal")
+                position = lower_message.find(
+                    "new goal"
+                )
 
                 goal_title = message[
                     position + len("new goal"):
                 ].strip()
 
-            goal_title = goal_title.strip(" :.-")
+            goal_title = goal_title.strip(
+                " :.-"
+            )
 
             if goal_title:
 
@@ -1212,7 +1505,10 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(goal)
+                db.session.add(
+                    goal
+                )
+
                 db.session.commit()
 
                 response = (
@@ -1229,9 +1525,9 @@ def ai():
                     "Add goal Learn Python"
                 )
 
-        # ====================================================
+        # ----------------------------------------------------
         # FINANCE
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "balance" in lower_message
@@ -1268,9 +1564,9 @@ def ai():
                 f"Balance: KSh {balance:,.2f}"
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # TASKS
-        # ====================================================
+        # ----------------------------------------------------
 
         elif "task" in lower_message:
 
@@ -1294,9 +1590,9 @@ def ai():
                 f"Pending: {pending_tasks}"
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # GOALS
-        # ====================================================
+        # ----------------------------------------------------
 
         elif "goal" in lower_message:
 
@@ -1320,9 +1616,9 @@ def ai():
                 f"Active: {pending_goals}"
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # PRODUCTIVITY
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "productivity" in lower_message
@@ -1338,9 +1634,9 @@ def ai():
                 "5. Plan tomorrow."
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # HELP
-        # ====================================================
+        # ----------------------------------------------------
 
         elif "help" in lower_message:
 
@@ -1359,9 +1655,9 @@ def ai():
                 "• What's my balance?"
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # WHO ARE YOU
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "who are you" in lower_message
@@ -1374,9 +1670,9 @@ def ai():
                 "assistant inside LIFEOS."
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # THANKS
-        # ====================================================
+        # ----------------------------------------------------
 
         elif (
             "thank" in lower_message
@@ -1388,9 +1684,9 @@ def ai():
                 "Let's keep building LIFEOS."
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # DEFAULT
-        # ====================================================
+        # ----------------------------------------------------
 
         else:
 
@@ -1423,9 +1719,12 @@ def page_not_found(error):
     return """
     <!DOCTYPE html>
     <html>
+
     <head>
         <title>LIFEOS - 404</title>
+
         <style>
+
             body {
                 font-family: Arial;
                 text-align: center;
@@ -1442,7 +1741,9 @@ def page_not_found(error):
                 text-decoration: none;
                 border-radius: 8px;
             }
+
         </style>
+
     </head>
 
     <body>
@@ -1460,6 +1761,7 @@ def page_not_found(error):
         </a>
 
     </body>
+
     </html>
     """, 404
 
@@ -1476,9 +1778,12 @@ def internal_error(error):
     return """
     <!DOCTYPE html>
     <html>
+
     <head>
         <title>LIFEOS - Error</title>
+
         <style>
+
             body {
                 font-family: Arial;
                 text-align: center;
@@ -1495,7 +1800,9 @@ def internal_error(error):
                 text-decoration: none;
                 border-radius: 8px;
             }
+
         </style>
+
     </head>
 
     <body>
@@ -1511,6 +1818,7 @@ def internal_error(error):
         </a>
 
     </body>
+
     </html>
     """, 500
 
@@ -1520,24 +1828,10 @@ def internal_error(error):
 # ============================================================
 
 if __name__ == "__main__":
+
     app.run(
         host="127.0.0.1",
         port=5000,
         debug=False,
         use_reloader=False
-    )
-
-    print("")
-    print("========================================")
-    print("        LIFEOS APPLICATION")
-    print("========================================")
-    print("")
-    print("Server starting...")
-    print("Open: http://127.0.0.1:5000")
-    print("")
-
-    app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=True
     )
