@@ -4,8 +4,11 @@
 
 import os
 import sys
+from datetime import datetime
 
 from flask import Flask, render_template, request, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from database import db
 from models import (
     User,
@@ -15,20 +18,16 @@ from models import (
     Transaction,
     CalendarEvent
 )
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
 
 
 # ============================================================
-# APP CONFIGURATION
+# APPLICATION PATHS
 # ============================================================
 
 if getattr(sys, "frozen", False):
-
     # --------------------------------------------------------
     # PACKAGED EXE
     # --------------------------------------------------------
-
     BASE_DIR = sys._MEIPASS
 
     USER_DATA_DIR = os.path.join(
@@ -40,21 +39,15 @@ if getattr(sys, "frozen", False):
     )
 
 else:
-
     # --------------------------------------------------------
-    # NORMAL PYTHON / DEVELOPMENT
+    # NORMAL PYTHON / DEVELOPMENT / RENDER
     # --------------------------------------------------------
-
     BASE_DIR = os.path.dirname(
         os.path.abspath(__file__)
     )
 
     USER_DATA_DIR = BASE_DIR
 
-
-# ============================================================
-# APPLICATION PATHS
-# ============================================================
 
 TEMPLATES_DIR = os.path.join(
     BASE_DIR,
@@ -104,45 +97,17 @@ app.secret_key = os.environ.get(
 
 
 # ============================================================
-# DATABASE
+# DATABASE CONFIGURATION
 # ============================================================
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
-    # Render PostgreSQL
-    DATABASE_URL = DATABASE_URL.replace(
-        "postgres://",
-        "postgresql://",
-        1
-    )
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-
-else:
-    # Local development / Windows EXE
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "sqlite:///" + DATABASE_PATH.replace("\\", "/")
-    )
-
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db.init_app(app)
-
-
-# ------------------------------------------------------------
-# RENDER / POSTGRESQL
-# ------------------------------------------------------------
-
-if DATABASE_URL:
-
-    # Some PostgreSQL providers may return the older
-    # postgres:// format.
-    #
-    # SQLAlchemy expects postgresql://
+    # Render / PostgreSQL
+    DATABASE_URL = DATABASE_URL.strip()
 
     if DATABASE_URL.startswith("postgres://"):
-
         DATABASE_URL = DATABASE_URL.replace(
             "postgres://",
             "postgresql://",
@@ -151,26 +116,22 @@ if DATABASE_URL:
 
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
-
-# ------------------------------------------------------------
-# LOCAL / EXE SQLITE
-# ------------------------------------------------------------
-
 else:
 
+    # Local development / Windows EXE
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         "sqlite:///"
         + DATABASE_PATH.replace("\\", "/")
     )
 
 
-app.config[
-    "SQLALCHEMY_TRACK_MODIFICATIONS"
-] = False
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 # ============================================================
-# INITIALIZE DATABASE
+# INITIALIZE SQLALCHEMY
+# IMPORTANT:
+# db.init_app(app) MUST ONLY APPEAR ONCE
 # ============================================================
 
 db.init_app(app)
@@ -181,7 +142,6 @@ db.init_app(app)
 # ============================================================
 
 with app.app_context():
-
     db.create_all()
 
 
@@ -191,12 +151,9 @@ with app.app_context():
 
 def get_current_user():
 
-    user_id = session.get(
-        "user_id"
-    )
+    user_id = session.get("user_id")
 
     if not user_id:
-
         return None
 
     user = db.session.get(
@@ -205,7 +162,6 @@ def get_current_user():
     )
 
     if user is None:
-
         session.pop(
             "user_id",
             None
@@ -231,7 +187,6 @@ def home():
     user = get_current_user()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -255,15 +210,15 @@ def home():
     income = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "income"
-        or t.transaction_type == "income"
+        if getattr(t, "type", None) == "income"
+        or getattr(t, "transaction_type", None) == "income"
     )
 
     expenses = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "expense"
-        or t.transaction_type == "expense"
+        if getattr(t, "type", None) == "expense"
+        or getattr(t, "transaction_type", None) == "expense"
     )
 
     balance = income - expenses
@@ -429,7 +384,6 @@ def tasks():
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -449,10 +403,7 @@ def tasks():
                 user_id=user.id
             )
 
-            db.session.add(
-                task
-            )
-
+            db.session.add(task)
             db.session.commit()
 
         return redirect(
@@ -484,7 +435,6 @@ def complete_task(task_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -497,7 +447,6 @@ def complete_task(task_id):
     if task:
 
         task.completed = True
-
         db.session.commit()
 
     return redirect(
@@ -518,7 +467,6 @@ def delete_task(task_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -530,10 +478,7 @@ def delete_task(task_id):
 
     if task:
 
-        db.session.delete(
-            task
-        )
-
+        db.session.delete(task)
         db.session.commit()
 
     return redirect(
@@ -554,7 +499,6 @@ def goals():
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -574,10 +518,7 @@ def goals():
                 user_id=user.id
             )
 
-            db.session.add(
-                goal
-            )
-
+            db.session.add(goal)
             db.session.commit()
 
         return redirect(
@@ -609,7 +550,6 @@ def complete_goal(goal_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -622,7 +562,6 @@ def complete_goal(goal_id):
     if goal:
 
         goal.completed = True
-
         db.session.commit()
 
     return redirect(
@@ -643,7 +582,6 @@ def delete_goal(goal_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -655,10 +593,7 @@ def delete_goal(goal_id):
 
     if goal:
 
-        db.session.delete(
-            goal
-        )
-
+        db.session.delete(goal)
         db.session.commit()
 
     return redirect(
@@ -679,7 +614,6 @@ def calendar():
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -755,10 +689,7 @@ def calendar():
             user_id=user.id
         )
 
-        db.session.add(
-            event
-        )
-
+        db.session.add(event)
         db.session.commit()
 
         return redirect(
@@ -807,7 +738,6 @@ def delete_calendar_event(event_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -819,10 +749,7 @@ def delete_calendar_event(event_id):
 
     if event:
 
-        db.session.delete(
-            event
-        )
-
+        db.session.delete(event)
         db.session.commit()
 
     return redirect(
@@ -843,7 +770,6 @@ def memory():
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -874,10 +800,7 @@ def memory():
                 user_id=user.id
             )
 
-            db.session.add(
-                memory_item
-            )
-
+            db.session.add(memory_item)
             db.session.commit()
 
         return redirect(
@@ -910,7 +833,6 @@ def delete_memory(memory_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -922,10 +844,7 @@ def delete_memory(memory_id):
 
     if memory_item:
 
-        db.session.delete(
-            memory_item
-        )
-
+        db.session.delete(memory_item)
         db.session.commit()
 
     return redirect(
@@ -946,14 +865,9 @@ def finance():
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
-
-    # --------------------------------------------------------
-    # ADD TRANSACTION
-    # --------------------------------------------------------
 
     if request.method == "POST":
 
@@ -982,29 +896,29 @@ def finance():
             ""
         ).strip()
 
+        transactions = Transaction.query.filter_by(
+            user_id=user.id
+        ).order_by(
+            Transaction.id.desc()
+        ).all()
+
         if transaction_type not in [
             "income",
             "expense"
         ]:
 
-            transactions = Transaction.query.filter_by(
-                user_id=user.id
-            ).order_by(
-                Transaction.id.desc()
-            ).all()
-
             income = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "income"
-                or t.transaction_type == "income"
+                if getattr(t, "type", None) == "income"
+                or getattr(t, "transaction_type", None) == "income"
             )
 
             expenses = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "expense"
-                or t.transaction_type == "expense"
+                if getattr(t, "type", None) == "expense"
+                or getattr(t, "transaction_type", None) == "expense"
             )
 
             return render_template(
@@ -1017,10 +931,6 @@ def finance():
                 error="Transaction type must be income or expense."
             )
 
-        # ----------------------------------------------------
-        # AMOUNT
-        # ----------------------------------------------------
-
         try:
 
             amount = float(
@@ -1032,24 +942,18 @@ def finance():
             TypeError
         ):
 
-            transactions = Transaction.query.filter_by(
-                user_id=user.id
-            ).order_by(
-                Transaction.id.desc()
-            ).all()
-
             income = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "income"
-                or t.transaction_type == "income"
+                if getattr(t, "type", None) == "income"
+                or getattr(t, "transaction_type", None) == "income"
             )
 
             expenses = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "expense"
-                or t.transaction_type == "expense"
+                if getattr(t, "type", None) == "expense"
+                or getattr(t, "transaction_type", None) == "expense"
             )
 
             return render_template(
@@ -1068,10 +972,6 @@ def finance():
                 url_for("finance")
             )
 
-        # ----------------------------------------------------
-        # DATE
-        # ----------------------------------------------------
-
         if transaction_date_text:
 
             try:
@@ -1089,10 +989,6 @@ def finance():
 
             transaction_datetime = datetime.now()
 
-        # ----------------------------------------------------
-        # CREATE TRANSACTION
-        # ----------------------------------------------------
-
         transaction = Transaction(
             amount=amount,
             transaction_type=transaction_type,
@@ -1103,19 +999,12 @@ def finance():
             user_id=user.id
         )
 
-        db.session.add(
-            transaction
-        )
-
+        db.session.add(transaction)
         db.session.commit()
 
         return redirect(
             url_for("finance")
         )
-
-    # --------------------------------------------------------
-    # GET FINANCE DATA
-    # --------------------------------------------------------
 
     transactions = Transaction.query.filter_by(
         user_id=user.id
@@ -1126,15 +1015,15 @@ def finance():
     income = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "income"
-        or t.transaction_type == "income"
+        if getattr(t, "type", None) == "income"
+        or getattr(t, "transaction_type", None) == "income"
     )
 
     expenses = sum(
         float(t.amount)
         for t in transactions
-        if t.type == "expense"
-        or t.transaction_type == "expense"
+        if getattr(t, "type", None) == "expense"
+        or getattr(t, "transaction_type", None) == "expense"
     )
 
     balance = income - expenses
@@ -1162,7 +1051,6 @@ def delete_transaction(transaction_id):
     user = login_required()
 
     if not user:
-
         return redirect(
             url_for("login")
         )
@@ -1174,10 +1062,7 @@ def delete_transaction(transaction_id):
 
     if transaction:
 
-        db.session.delete(
-            transaction
-        )
-
+        db.session.delete(transaction)
         db.session.commit()
 
     return redirect(
@@ -1235,9 +1120,7 @@ def settings():
 
             elif not email:
 
-                error = (
-                    "Email address cannot be empty."
-                )
+                error = "Email address cannot be empty."
 
             else:
 
@@ -1326,9 +1209,7 @@ def settings():
 
         else:
 
-            error = (
-                "Invalid settings action."
-            )
+            error = "Invalid settings action."
 
     return render_template(
         "settings.html",
@@ -1407,35 +1288,25 @@ def ai():
 
             task_title = ""
 
-            if "add task" in lower_message:
+            phrases = [
+                "add task",
+                "create task",
+                "new task"
+            ]
 
-                position = lower_message.find(
-                    "add task"
-                )
+            for phrase in phrases:
 
-                task_title = message[
-                    position + len("add task"):
-                ].strip()
+                if phrase in lower_message:
 
-            elif "create task" in lower_message:
+                    position = lower_message.find(
+                        phrase
+                    )
 
-                position = lower_message.find(
-                    "create task"
-                )
+                    task_title = message[
+                        position + len(phrase):
+                    ].strip()
 
-                task_title = message[
-                    position + len("create task"):
-                ].strip()
-
-            elif "new task" in lower_message:
-
-                position = lower_message.find(
-                    "new task"
-                )
-
-                task_title = message[
-                    position + len("new task"):
-                ].strip()
+                    break
 
             task_title = task_title.strip(
                 " :.-"
@@ -1449,10 +1320,7 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(
-                    task
-                )
-
+                db.session.add(task)
                 db.session.commit()
 
                 response = (
@@ -1481,35 +1349,25 @@ def ai():
 
             goal_title = ""
 
-            if "add goal" in lower_message:
+            phrases = [
+                "add goal",
+                "create goal",
+                "new goal"
+            ]
 
-                position = lower_message.find(
-                    "add goal"
-                )
+            for phrase in phrases:
 
-                goal_title = message[
-                    position + len("add goal"):
-                ].strip()
+                if phrase in lower_message:
 
-            elif "create goal" in lower_message:
+                    position = lower_message.find(
+                        phrase
+                    )
 
-                position = lower_message.find(
-                    "create goal"
-                )
+                    goal_title = message[
+                        position + len(phrase):
+                    ].strip()
 
-                goal_title = message[
-                    position + len("create goal"):
-                ].strip()
-
-            elif "new goal" in lower_message:
-
-                position = lower_message.find(
-                    "new goal"
-                )
-
-                goal_title = message[
-                    position + len("new goal"):
-                ].strip()
+                    break
 
             goal_title = goal_title.strip(
                 " :.-"
@@ -1523,10 +1381,7 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(
-                    goal
-                )
-
+                db.session.add(goal)
                 db.session.commit()
 
                 response = (
@@ -1562,15 +1417,15 @@ def ai():
             income = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "income"
-                or t.transaction_type == "income"
+                if getattr(t, "type", None) == "income"
+                or getattr(t, "transaction_type", None) == "income"
             )
 
             expenses = sum(
                 float(t.amount)
                 for t in transactions
-                if t.type == "expense"
-                or t.transaction_type == "expense"
+                if getattr(t, "type", None) == "expense"
+                or getattr(t, "transaction_type", None) == "expense"
             )
 
             balance = income - expenses
