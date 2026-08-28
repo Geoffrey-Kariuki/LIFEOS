@@ -1,33 +1,48 @@
 # ============================================================
 # LIFEOS - COMPLETE APP.PY
+# LOCAL + WINDOWS EXE + RENDER ONLINE
 # ============================================================
 
 import os
 import sys
 from datetime import datetime
 
-from flask import Flask, render_template, request, session, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import (
+    Flask,
+    render_template,
+    request,
+    session,
+    redirect,
+    url_for,
+)
+
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash,
+)
 
 from database import db
+
 from models import (
     User,
     Task,
     Goal,
     Memory,
     Transaction,
-    CalendarEvent
+    CalendarEvent,
 )
 
 
 # ============================================================
-# APPLICATION PATHS
+# PATH CONFIGURATION
 # ============================================================
 
 if getattr(sys, "frozen", False):
+
     # --------------------------------------------------------
-    # PACKAGED EXE
+    # WINDOWS EXE
     # --------------------------------------------------------
+
     BASE_DIR = sys._MEIPASS
 
     USER_DATA_DIR = os.path.join(
@@ -39,9 +54,11 @@ if getattr(sys, "frozen", False):
     )
 
 else:
+
     # --------------------------------------------------------
-    # NORMAL PYTHON / DEVELOPMENT / RENDER
+    # PYTHON / RENDER
     # --------------------------------------------------------
+
     BASE_DIR = os.path.dirname(
         os.path.abspath(__file__)
     )
@@ -76,13 +93,13 @@ DATABASE_PATH = os.path.join(
 
 
 # ============================================================
-# FLASK APP
+# CREATE FLASK APPLICATION
 # ============================================================
 
 app = Flask(
     __name__,
     template_folder=TEMPLATES_DIR,
-    static_folder=STATIC_DIR
+    static_folder=STATIC_DIR,
 )
 
 
@@ -92,7 +109,7 @@ app = Flask(
 
 app.secret_key = os.environ.get(
     "LIFEOS_SECRET_KEY",
-    "dev-only-secret-change-in-production"
+    "dev-only-secret-change-this"
 )
 
 
@@ -100,38 +117,59 @@ app.secret_key = os.environ.get(
 # DATABASE CONFIGURATION
 # ============================================================
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL"
+)
 
 if DATABASE_URL:
 
-    # Render / PostgreSQL
+    # --------------------------------------------------------
+    # ONLINE / RENDER / POSTGRESQL
+    # --------------------------------------------------------
+
     DATABASE_URL = DATABASE_URL.strip()
 
-    if DATABASE_URL.startswith("postgres://"):
+    if DATABASE_URL.startswith(
+        "postgres://"
+    ):
+
         DATABASE_URL = DATABASE_URL.replace(
             "postgres://",
             "postgresql://",
             1
         )
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+    app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ] = DATABASE_URL
 
 else:
 
-    # Local development / Windows EXE
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
+    # --------------------------------------------------------
+    # LOCAL / WINDOWS EXE / SQLITE
+    # --------------------------------------------------------
+
+    app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ] = (
         "sqlite:///"
-        + DATABASE_PATH.replace("\\", "/")
+        + DATABASE_PATH.replace(
+            "\\",
+            "/"
+        )
     )
 
 
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config[
+    "SQLALCHEMY_TRACK_MODIFICATIONS"
+] = False
 
 
 # ============================================================
-# INITIALIZE SQLALCHEMY
-# IMPORTANT:
-# db.init_app(app) MUST ONLY APPEAR ONCE
+# INITIALIZE DATABASE
+#
+# VERY IMPORTANT:
+# THIS MUST EXIST ONCE AND ONLY ONCE.
 # ============================================================
 
 db.init_app(app)
@@ -142,16 +180,19 @@ db.init_app(app)
 # ============================================================
 
 with app.app_context():
+
     db.create_all()
 
 
 # ============================================================
-# HELPER - CURRENT USER
+# CURRENT USER
 # ============================================================
 
 def get_current_user():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
         return None
@@ -162,6 +203,7 @@ def get_current_user():
     )
 
     if user is None:
+
         session.pop(
             "user_id",
             None
@@ -178,6 +220,57 @@ def login_required():
 
 
 # ============================================================
+# FINANCE CALCULATOR
+# ============================================================
+
+def calculate_finances(user_id):
+
+    transactions = Transaction.query.filter_by(
+        user_id=user_id
+    ).all()
+
+    income = 0.0
+    expenses = 0.0
+
+    for transaction in transactions:
+
+        transaction_type = getattr(
+            transaction,
+            "type",
+            None
+        )
+
+        if not transaction_type:
+
+            transaction_type = getattr(
+                transaction,
+                "transaction_type",
+                None
+            )
+
+        amount = float(
+            transaction.amount
+        )
+
+        if transaction_type == "income":
+
+            income += amount
+
+        elif transaction_type == "expense":
+
+            expenses += amount
+
+    balance = income - expenses
+
+    return (
+        transactions,
+        income,
+        expenses,
+        balance
+    )
+
+
+# ============================================================
 # DASHBOARD
 # ============================================================
 
@@ -187,6 +280,7 @@ def home():
     user = get_current_user()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -203,25 +297,14 @@ def home():
         Goal.id.desc()
     ).all()
 
-    transactions = Transaction.query.filter_by(
-        user_id=user.id
-    ).all()
-
-    income = sum(
-        float(t.amount)
-        for t in transactions
-        if getattr(t, "type", None) == "income"
-        or getattr(t, "transaction_type", None) == "income"
+    (
+        transactions,
+        income,
+        expenses,
+        balance
+    ) = calculate_finances(
+        user.id
     )
-
-    expenses = sum(
-        float(t.amount)
-        for t in transactions
-        if getattr(t, "type", None) == "expense"
-        or getattr(t, "transaction_type", None) == "expense"
-    )
-
-    balance = income - expenses
 
     return render_template(
         "index.html",
@@ -278,7 +361,10 @@ def register():
 
             return render_template(
                 "register.html",
-                error="An account with this email already exists."
+                error=(
+                    "An account with this email "
+                    "already exists."
+                )
             )
 
         new_user = User(
@@ -384,6 +470,7 @@ def tasks():
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -403,7 +490,10 @@ def tasks():
                 user_id=user.id
             )
 
-            db.session.add(task)
+            db.session.add(
+                task
+            )
+
             db.session.commit()
 
         return redirect(
@@ -435,6 +525,7 @@ def complete_task(task_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -447,6 +538,7 @@ def complete_task(task_id):
     if task:
 
         task.completed = True
+
         db.session.commit()
 
     return redirect(
@@ -467,6 +559,7 @@ def delete_task(task_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -478,7 +571,10 @@ def delete_task(task_id):
 
     if task:
 
-        db.session.delete(task)
+        db.session.delete(
+            task
+        )
+
         db.session.commit()
 
     return redirect(
@@ -499,6 +595,7 @@ def goals():
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -518,7 +615,10 @@ def goals():
                 user_id=user.id
             )
 
-            db.session.add(goal)
+            db.session.add(
+                goal
+            )
+
             db.session.commit()
 
         return redirect(
@@ -550,6 +650,7 @@ def complete_goal(goal_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -562,6 +663,7 @@ def complete_goal(goal_id):
     if goal:
 
         goal.completed = True
+
         db.session.commit()
 
     return redirect(
@@ -582,6 +684,7 @@ def delete_goal(goal_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -593,7 +696,10 @@ def delete_goal(goal_id):
 
     if goal:
 
-        db.session.delete(goal)
+        db.session.delete(
+            goal
+        )
+
         db.session.commit()
 
     return redirect(
@@ -614,6 +720,7 @@ def calendar():
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -689,7 +796,10 @@ def calendar():
             user_id=user.id
         )
 
-        db.session.add(event)
+        db.session.add(
+            event
+        )
+
         db.session.commit()
 
         return redirect(
@@ -738,6 +848,7 @@ def delete_calendar_event(event_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -749,7 +860,10 @@ def delete_calendar_event(event_id):
 
     if event:
 
-        db.session.delete(event)
+        db.session.delete(
+            event
+        )
+
         db.session.commit()
 
     return redirect(
@@ -758,7 +872,7 @@ def delete_calendar_event(event_id):
 
 
 # ============================================================
-# LIFE MEMORY
+# MEMORY
 # ============================================================
 
 @app.route(
@@ -770,6 +884,7 @@ def memory():
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -800,7 +915,10 @@ def memory():
                 user_id=user.id
             )
 
-            db.session.add(memory_item)
+            db.session.add(
+                memory_item
+            )
+
             db.session.commit()
 
         return redirect(
@@ -833,6 +951,7 @@ def delete_memory(memory_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -844,7 +963,10 @@ def delete_memory(memory_id):
 
     if memory_item:
 
-        db.session.delete(memory_item)
+        db.session.delete(
+            memory_item
+        )
+
         db.session.commit()
 
     return redirect(
@@ -865,6 +987,7 @@ def finance():
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -896,29 +1019,18 @@ def finance():
             ""
         ).strip()
 
-        transactions = Transaction.query.filter_by(
-            user_id=user.id
-        ).order_by(
-            Transaction.id.desc()
-        ).all()
-
         if transaction_type not in [
             "income",
             "expense"
         ]:
 
-            income = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "income"
-                or getattr(t, "transaction_type", None) == "income"
-            )
-
-            expenses = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "expense"
-                or getattr(t, "transaction_type", None) == "expense"
+            (
+                transactions,
+                income,
+                expenses,
+                balance
+            ) = calculate_finances(
+                user.id
             )
 
             return render_template(
@@ -927,8 +1039,11 @@ def finance():
                 transactions=transactions,
                 income=income,
                 expenses=expenses,
-                balance=income - expenses,
-                error="Transaction type must be income or expense."
+                balance=balance,
+                error=(
+                    "Transaction type must be "
+                    "income or expense."
+                )
             )
 
         try:
@@ -942,18 +1057,13 @@ def finance():
             TypeError
         ):
 
-            income = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "income"
-                or getattr(t, "transaction_type", None) == "income"
-            )
-
-            expenses = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "expense"
-                or getattr(t, "transaction_type", None) == "expense"
+            (
+                transactions,
+                income,
+                expenses,
+                balance
+            ) = calculate_finances(
+                user.id
             )
 
             return render_template(
@@ -962,8 +1072,10 @@ def finance():
                 transactions=transactions,
                 income=income,
                 expenses=expenses,
-                balance=income - expenses,
-                error="Please enter a valid amount."
+                balance=balance,
+                error=(
+                    "Please enter a valid amount."
+                )
             )
 
         if amount <= 0:
@@ -999,34 +1111,30 @@ def finance():
             user_id=user.id
         )
 
-        db.session.add(transaction)
+        db.session.add(
+            transaction
+        )
+
         db.session.commit()
 
         return redirect(
             url_for("finance")
         )
 
-    transactions = Transaction.query.filter_by(
-        user_id=user.id
-    ).order_by(
-        Transaction.id.desc()
-    ).all()
-
-    income = sum(
-        float(t.amount)
-        for t in transactions
-        if getattr(t, "type", None) == "income"
-        or getattr(t, "transaction_type", None) == "income"
+    (
+        transactions,
+        income,
+        expenses,
+        balance
+    ) = calculate_finances(
+        user.id
     )
 
-    expenses = sum(
-        float(t.amount)
-        for t in transactions
-        if getattr(t, "type", None) == "expense"
-        or getattr(t, "transaction_type", None) == "expense"
+    transactions = sorted(
+        transactions,
+        key=lambda x: x.id,
+        reverse=True
     )
-
-    balance = income - expenses
 
     return render_template(
         "finance.html",
@@ -1051,6 +1159,7 @@ def delete_transaction(transaction_id):
     user = login_required()
 
     if not user:
+
         return redirect(
             url_for("login")
         )
@@ -1062,7 +1171,10 @@ def delete_transaction(transaction_id):
 
     if transaction:
 
-        db.session.delete(transaction)
+        db.session.delete(
+            transaction
+        )
+
         db.session.commit()
 
     return redirect(
@@ -1116,11 +1228,15 @@ def settings():
 
             if not name:
 
-                error = "Name cannot be empty."
+                error = (
+                    "Name cannot be empty."
+                )
 
             elif not email:
 
-                error = "Email address cannot be empty."
+                error = (
+                    "Email address cannot be empty."
+                )
 
             else:
 
@@ -1132,7 +1248,8 @@ def settings():
                 if existing_user:
 
                     error = (
-                        "That email address is already being used."
+                        "That email address is "
+                        "already being used."
                     )
 
                 else:
@@ -1143,7 +1260,8 @@ def settings():
                     db.session.commit()
 
                     success = (
-                        "Your profile has been updated successfully."
+                        "Your profile has been "
+                        "updated successfully."
                     )
 
         # ----------------------------------------------------
@@ -1170,7 +1288,8 @@ def settings():
             if not current_password:
 
                 error = (
-                    "Please enter your current password."
+                    "Please enter your current "
+                    "password."
                 )
 
             elif not check_password_hash(
@@ -1185,8 +1304,8 @@ def settings():
             elif len(new_password) < 6:
 
                 error = (
-                    "New password must contain at least "
-                    "6 characters."
+                    "New password must contain "
+                    "at least 6 characters."
                 )
 
             elif new_password != confirm_password:
@@ -1204,12 +1323,15 @@ def settings():
                 db.session.commit()
 
                 success = (
-                    "Your password has been changed successfully."
+                    "Your password has been "
+                    "changed successfully."
                 )
 
         else:
 
-            error = "Invalid settings action."
+            error = (
+                "Invalid settings action."
+            )
 
     return render_template(
         "settings.html",
@@ -1260,7 +1382,7 @@ def ai():
             )
 
         # ----------------------------------------------------
-        # HELLO
+        # GREETING
         # ----------------------------------------------------
 
         elif (
@@ -1272,8 +1394,8 @@ def ai():
             response = (
                 f"Hello {user.name}! 👋\n\n"
                 "I'm your LIFEOS Assistant. "
-                "I can help you manage tasks, goals, "
-                "memories and finances."
+                "I can help you manage tasks, "
+                "goals, memories and finances."
             )
 
         # ----------------------------------------------------
@@ -1320,7 +1442,10 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(task)
+                db.session.add(
+                    task
+                )
+
                 db.session.commit()
 
                 response = (
@@ -1332,8 +1457,7 @@ def ai():
             else:
 
                 response = (
-                    "Sure! 📋\n\n"
-                    "Try:\n"
+                    "Try:\n\n"
                     "Add task Study Python"
                 )
 
@@ -1381,7 +1505,10 @@ def ai():
                     user_id=user.id
                 )
 
-                db.session.add(goal)
+                db.session.add(
+                    goal
+                )
+
                 db.session.commit()
 
                 response = (
@@ -1393,8 +1520,7 @@ def ai():
             else:
 
                 response = (
-                    "Sure! 🎯\n\n"
-                    "Try:\n"
+                    "Try:\n\n"
                     "Add goal Learn Python"
                 )
 
@@ -1410,25 +1536,14 @@ def ai():
             or "expense" in lower_message
         ):
 
-            transactions = Transaction.query.filter_by(
-                user_id=user.id
-            ).all()
-
-            income = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "income"
-                or getattr(t, "transaction_type", None) == "income"
+            (
+                transactions,
+                income,
+                expenses,
+                balance
+            ) = calculate_finances(
+                user.id
             )
-
-            expenses = sum(
-                float(t.amount)
-                for t in transactions
-                if getattr(t, "type", None) == "expense"
-                or getattr(t, "transaction_type", None) == "expense"
-            )
-
-            balance = income - expenses
 
             response = (
                 "💰 Your LIFEOS Finance\n\n"
@@ -1499,10 +1614,10 @@ def ai():
         ):
 
             response = (
-                "🚀 Here's a simple productivity plan:\n\n"
+                "🚀 Productivity plan:\n\n"
                 "1. Choose your most important task.\n"
-                "2. Work without distractions.\n"
-                "3. Complete smaller tasks afterward.\n"
+                "2. Remove distractions.\n"
+                "3. Finish smaller tasks afterward.\n"
                 "4. Review your goals.\n"
                 "5. Plan tomorrow."
             )
@@ -1514,7 +1629,7 @@ def ai():
         elif "help" in lower_message:
 
             response = (
-                "🤖 Here's what I can do:\n\n"
+                "🤖 LIFEOS Assistant can:\n\n"
                 "📋 Add tasks\n"
                 "🎯 Add goals\n"
                 "📊 Check tasks\n"
@@ -1529,7 +1644,7 @@ def ai():
             )
 
         # ----------------------------------------------------
-        # WHO ARE YOU
+        # IDENTITY
         # ----------------------------------------------------
 
         elif (
@@ -1565,8 +1680,8 @@ def ai():
 
             response = (
                 "I'm not sure how to handle that yet. 🤔\n\n"
-                "Try asking about your tasks, goals "
-                "or finances.\n\n"
+                "Try asking about your tasks, "
+                "goals or finances.\n\n"
                 "Example:\n"
                 "• Add task Study Python\n"
                 "• Add goal Learn AI\n"
@@ -1592,14 +1707,11 @@ def page_not_found(error):
     return """
     <!DOCTYPE html>
     <html>
-
     <head>
         <title>LIFEOS - 404</title>
-
         <style>
-
             body {
-                font-family: Arial;
+                font-family: Arial, sans-serif;
                 text-align: center;
                 padding: 80px;
                 background: #f5f7fb;
@@ -1614,15 +1726,11 @@ def page_not_found(error):
                 text-decoration: none;
                 border-radius: 8px;
             }
-
         </style>
-
     </head>
 
     <body>
-
         <h1>404</h1>
-
         <h2>Page not found</h2>
 
         <p>
@@ -1632,9 +1740,7 @@ def page_not_found(error):
         <a href="/">
             Return to Dashboard
         </a>
-
     </body>
-
     </html>
     """, 404
 
@@ -1651,14 +1757,12 @@ def internal_error(error):
     return """
     <!DOCTYPE html>
     <html>
-
     <head>
         <title>LIFEOS - Error</title>
 
         <style>
-
             body {
-                font-family: Arial;
+                font-family: Arial, sans-serif;
                 text-align: center;
                 padding: 80px;
                 background: #f5f7fb;
@@ -1673,9 +1777,7 @@ def internal_error(error):
                 text-decoration: none;
                 border-radius: 8px;
             }
-
         </style>
-
     </head>
 
     <body>
@@ -1691,7 +1793,6 @@ def internal_error(error):
         </a>
 
     </body>
-
     </html>
     """, 500
 
@@ -1702,6 +1803,7 @@ def internal_error(error):
 
 if __name__ == "__main__":
 
+    # Local Windows version
     app.run(
         host="127.0.0.1",
         port=5000,
