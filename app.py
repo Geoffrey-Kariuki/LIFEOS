@@ -107,9 +107,27 @@ app.secret_key = os.environ.get(
 # DATABASE
 # ============================================================
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL"
-)
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Render PostgreSQL
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql://",
+        1
+    )
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
+else:
+    # Local development / Windows EXE
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///" + DATABASE_PATH.replace("\\", "/")
+    )
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
 
 
 # ------------------------------------------------------------
