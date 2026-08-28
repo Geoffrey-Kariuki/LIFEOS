@@ -11,3 +11,4 @@ lxml==6.0.0
 cssselect==1.3.0
 cssutils==2.11.1
 cachetools==6.1.0
+psycopg2-binary==2.9.10
