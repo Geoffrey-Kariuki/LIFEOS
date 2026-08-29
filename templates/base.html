@@ -1,913 +1,1321 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        {% block title %}
-        LIFEOS
-        {% endblock %}
-    </title>
 
-    <style>
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Arial,
-                sans-serif;
-
-            background: #f5f7fb;
-            color: #172033;
-            min-height: 100vh;
-        }
-
-        /* =====================================================
-           SIDEBAR
-        ===================================================== */
-
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-
-            width: 250px;
-            height: 100vh;
-
-            background: #111827;
-            color: white;
-
-            padding: 25px 18px;
-
-            z-index: 1000;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+```
+<meta charset="UTF-8">
 
-            padding: 0 12px;
-            margin-bottom: 35px;
-        }
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-        .logo-icon {
-            width: 42px;
-            height: 42px;
+<meta name="theme-color"
+      content="#07152f">
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+<meta name="description"
+      content="LIFEOS - Your personal life operating system.">
 
-            background: #4f46e5;
-            border-radius: 12px;
+<!-- PWA -->
+<link rel="manifest"
+      href="{{ url_for('static', filename='manifest.json') }}">
 
-            font-size: 22px;
-        }
+<meta name="mobile-web-app-capable"
+      content="yes">
 
-        .logo-text {
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
+<meta name="apple-mobile-web-app-capable"
+      content="yes">
 
-        .nav-title {
-            color: #9ca3af;
-            font-size: 11px;
-            font-weight: 700;
+<meta name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent">
 
-            text-transform: uppercase;
-            letter-spacing: 1px;
+<meta name="apple-mobile-web-app-title"
+      content="LIFEOS">
 
-            padding: 0 12px;
-            margin-bottom: 10px;
-        }
+<!-- ICONS -->
+<link rel="apple-touch-icon"
+      href="{{ url_for('static', filename='icon-192.png') }}">
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+<link rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="{{ url_for('static', filename='icon-192.png') }}">
 
-            text-decoration: none;
-            color: #cbd5e1;
+<link rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="{{ url_for('static', filename='icon-512.png') }}">
 
-            padding: 12px 14px;
-            margin-bottom: 5px;
+<title>
+    {% block title %}
+    LIFEOS
+    {% endblock %}
+</title>
+```
 
-            border-radius: 10px;
+<style>
 
-            transition: 0.2s;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .nav-link:hover {
-            background: #1f2937;
-            color: white;
-        }
+html {
+    scroll-behavior: smooth;
+}
 
-        .nav-link.active {
-            background: #4f46e5;
-            color: white;
-        }
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
 
-        .nav-icon {
-            width: 22px;
-            text-align: center;
-            font-size: 18px;
-        }
+    background: #f5f7fb;
+    color: #172033;
+    min-height: 100vh;
+}
 
-        /* =====================================================
-           SIDEBAR BOTTOM
-        ===================================================== */
 
-        .sidebar-bottom {
-            position: absolute;
+/* =====================================================
+   SIDEBAR
+===================================================== */
 
-            left: 18px;
-            right: 18px;
-            bottom: 20px;
-        }
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
 
-        .user-mini {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+    width: 250px;
+    height: 100vh;
 
-            padding: 12px;
+    background: #111827;
+    color: white;
 
-            background: #1f2937;
-            border-radius: 12px;
+    padding: 25px 18px;
 
-            margin-bottom: 10px;
-        }
+    z-index: 1000;
 
-        .avatar {
-            width: 38px;
-            height: 38px;
+    overflow-y: auto;
 
-            border-radius: 50%;
+    transition: transform 0.25s ease;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.logo {
+    display: flex;
+    align-items: center;
 
-            background: #6366f1;
+    gap: 10px;
 
-            color: white;
-            font-weight: 700;
-        }
+    padding: 0 12px;
 
-        .user-info {
-            min-width: 0;
-        }
+    margin-bottom: 35px;
+}
 
-        .user-name {
-            font-size: 14px;
-            font-weight: 700;
+.logo-icon {
+    width: 42px;
+    height: 42px;
 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    display: flex;
 
-        .user-email {
-            font-size: 11px;
-            color: #9ca3af;
+    align-items: center;
+    justify-content: center;
 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    background: #4f46e5;
 
-        /* =====================================================
-           MAIN
-        ===================================================== */
+    border-radius: 12px;
 
-        .main {
-            margin-left: 250px;
-            min-height: 100vh;
-        }
+    font-size: 22px;
 
-        .topbar {
-            height: 75px;
+    box-shadow:
+        0 4px 12px rgba(79,70,229,0.35);
+}
 
-            background: white;
+.logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
 
-            border-bottom: 1px solid #e5e7eb;
+.founder-text {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 3px;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+.nav-title {
+    color: #9ca3af;
 
-            padding: 0 35px;
+    font-size: 11px;
 
-            position: sticky;
-            top: 0;
+    font-weight: 700;
 
-            z-index: 100;
-        }
+    text-transform: uppercase;
 
-        .page-title {
-            font-size: 22px;
-            font-weight: 750;
-        }
+    letter-spacing: 1px;
 
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    padding: 0 12px;
 
-        .top-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    margin-bottom: 10px;
+}
 
-            width: 40px;
-            height: 40px;
+.nav-link {
+    display: flex;
 
-            border-radius: 10px;
+    align-items: center;
 
-            text-decoration: none;
+    gap: 12px;
 
-            color: #475569;
-            background: #f1f5f9;
+    text-decoration: none;
 
-            transition: 0.2s;
-        }
+    color: #cbd5e1;
 
-        .top-button:hover {
-            background: #e2e8f0;
-        }
+    padding: 12px 14px;
 
-        /* =====================================================
-           CONTENT
-        ===================================================== */
+    margin-bottom: 5px;
 
-        .content {
-            padding: 35px;
-            max-width: 1500px;
-            margin: auto;
-        }
+    border-radius: 10px;
 
-        /* =====================================================
-           CARDS
-        ===================================================== */
+    transition: 0.2s;
+}
 
-        .card {
-            background: white;
+.nav-link:hover {
+    background: #1f2937;
+    color: white;
+}
 
-            border: 1px solid #e5e7eb;
+.nav-link.active {
+    background: #4f46e5;
+    color: white;
 
-            border-radius: 16px;
+    box-shadow:
+        0 4px 12px rgba(79,70,229,0.25);
+}
 
-            padding: 22px;
+.nav-icon {
+    width: 22px;
 
-            box-shadow:
-                0 2px 8px rgba(15, 23, 42, 0.04);
-        }
+    text-align: center;
 
-        .card-title {
-            font-size: 17px;
-            font-weight: 700;
+    font-size: 18px;
+}
 
-            margin-bottom: 15px;
-        }
 
-        /* =====================================================
-           BUTTONS
-        ===================================================== */
+/* =====================================================
+   USER
+===================================================== */
 
-        .btn {
-            border: none;
+.sidebar-bottom {
+    margin-top: 30px;
+}
 
-            padding: 11px 17px;
+.user-mini {
+    display: flex;
 
-            border-radius: 9px;
+    align-items: center;
 
-            font-size: 14px;
-            font-weight: 600;
+    gap: 10px;
 
-            cursor: pointer;
+    padding: 12px;
 
-            text-decoration: none;
+    background: #1f2937;
 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+    border-radius: 12px;
 
-            transition: 0.2s;
-        }
+    margin-bottom: 10px;
+}
 
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
+.avatar {
+    width: 38px;
+    height: 38px;
 
-        .btn-primary:hover {
-            background: #4338ca;
-        }
+    min-width: 38px;
 
-        .btn-success {
-            background: #16a34a;
-            color: white;
-        }
+    border-radius: 50%;
 
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
+    display: flex;
 
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #334155;
-        }
+    align-items: center;
+    justify-content: center;
 
-        /* =====================================================
-           FORMS
-        ===================================================== */
+    background: #6366f1;
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+    color: white;
 
-        .form-label {
-            display: block;
+    font-weight: 700;
+}
 
-            font-size: 13px;
-            font-weight: 650;
+.user-info {
+    min-width: 0;
+}
 
-            margin-bottom: 7px;
+.user-name {
+    font-size: 14px;
 
-            color: #374151;
-        }
+    font-weight: 700;
 
-        input,
-        textarea,
-        select {
-            width: 100%;
+    white-space: nowrap;
 
-            padding: 12px 13px;
+    overflow: hidden;
 
-            border: 1px solid #d1d5db;
+    text-overflow: ellipsis;
+}
 
-            border-radius: 9px;
+.user-email {
+    font-size: 11px;
 
-            font-size: 14px;
+    color: #9ca3af;
 
-            outline: none;
+    white-space: nowrap;
 
-            background: white;
+    overflow: hidden;
 
-            transition: 0.2s;
-        }
+    text-overflow: ellipsis;
+}
 
-        input:focus,
-        textarea:focus,
-        select:focus {
-            border-color: #6366f1;
 
-            box-shadow:
-                0 0 0 3px rgba(99, 102, 241, 0.12);
-        }
+/* =====================================================
+   MAIN
+===================================================== */
 
-        textarea {
-            min-height: 110px;
-            resize: vertical;
-        }
+.main {
+    margin-left: 250px;
 
-        /* =====================================================
-           ALERTS
-        ===================================================== */
+    min-height: 100vh;
+}
 
-        .alert {
-            padding: 13px 16px;
 
-            border-radius: 10px;
+/* =====================================================
+   TOPBAR
+===================================================== */
 
-            margin-bottom: 20px;
+.topbar {
+    min-height: 75px;
 
-            font-size: 14px;
-        }
+    background: white;
 
-        .alert-success {
-            background: #dcfce7;
-            color: #166534;
-        }
+    border-bottom: 1px solid #e5e7eb;
 
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+    display: flex;
 
-        /* =====================================================
-           BADGES
-        ===================================================== */
+    align-items: center;
 
-        .badge {
-            display: inline-flex;
+    justify-content: space-between;
 
-            padding: 5px 9px;
+    padding: 0 35px;
 
-            border-radius: 999px;
+    position: sticky;
 
-            font-size: 11px;
-            font-weight: 700;
-        }
+    top: 0;
 
-        .badge-success {
-            background: #dcfce7;
-            color: #166534;
-        }
+    z-index: 100;
+}
 
-        .badge-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
+.page-title {
+    font-size: 22px;
 
-        .badge-danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+    font-weight: 750;
+}
 
-        .badge-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
+.topbar-right {
+    display: flex;
 
-        /* =====================================================
-           GRID
-        ===================================================== */
+    align-items: center;
 
-        .grid {
-            display: grid;
-            gap: 20px;
-        }
+    gap: 10px;
+}
 
-        .grid-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
+.top-button {
+    display: flex;
 
-        .grid-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
+    align-items: center;
 
-        .grid-4 {
-            grid-template-columns: repeat(4, 1fr);
-        }
+    justify-content: center;
 
-        /* =====================================================
-           TABLE
-        ===================================================== */
+    width: 40px;
+    height: 40px;
 
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
+    border-radius: 10px;
 
-        table {
-            width: 100%;
+    text-decoration: none;
 
-            border-collapse: collapse;
+    color: #475569;
 
-            font-size: 14px;
-        }
+    background: #f1f5f9;
 
-        th {
-            text-align: left;
+    transition: 0.2s;
+}
 
-            padding: 13px;
+.top-button:hover {
+    background: #e2e8f0;
+}
 
-            background: #f8fafc;
 
-            color: #64748b;
+/* =====================================================
+   INSTALL BUTTON
+===================================================== */
 
-            font-size: 12px;
+#installButton {
+    display: inline-flex;
 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+    align-items: center;
 
-        td {
-            padding: 14px 13px;
+    justify-content: center;
 
-            border-top: 1px solid #e5e7eb;
-        }
+    border: none;
 
-        /* =====================================================
-           MOBILE MENU
-        ===================================================== */
+    cursor: pointer;
 
-        .mobile-menu {
-            display: none;
+    font-size: 13px;
 
-            border: none;
-            background: #f1f5f9;
+    font-weight: 700;
 
-            width: 40px;
-            height: 40px;
+    color: white;
 
-            border-radius: 10px;
+    background: #4f46e5;
 
-            cursor: pointer;
+    padding: 10px 14px;
 
-            font-size: 20px;
-        }
+    border-radius: 9px;
 
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
+    transition: 0.2s;
 
-        @media (max-width: 900px) {
+    box-shadow:
+        0 4px 10px rgba(79,70,229,0.25);
+}
 
-            .sidebar {
-                transform: translateX(-100%);
-                transition: 0.25s;
-            }
+#installButton:hover {
+    background: #4338ca;
 
-            .sidebar.open {
-                transform: translateX(0);
-            }
+    transform: translateY(-1px);
+}
 
-            .main {
-                margin-left: 0;
-            }
+#installButton:active {
+    transform: translateY(0);
+}
 
-            .mobile-menu {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
 
-            .topbar {
-                padding: 0 18px;
-            }
+/* =====================================================
+   CONTENT
+===================================================== */
 
-            .content {
-                padding: 20px;
-            }
+.content {
+    padding: 35px;
 
-            .grid-4 {
-                grid-template-columns: repeat(2, 1fr);
-            }
+    max-width: 1500px;
 
-            .grid-3 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+    margin: auto;
+}
 
-        @media (max-width: 600px) {
 
-            .content {
-                padding: 15px;
-            }
+/* =====================================================
+   CARDS
+===================================================== */
 
-            .topbar {
-                height: 65px;
-            }
+.card {
+    background: white;
 
-            .page-title {
-                font-size: 18px;
-            }
+    border: 1px solid #e5e7eb;
 
-            .grid-2,
-            .grid-3,
-            .grid-4 {
-                grid-template-columns: 1fr;
-            }
+    border-radius: 16px;
 
-            .card {
-                padding: 17px;
-                border-radius: 13px;
-            }
+    padding: 22px;
 
-            .hide-mobile {
-                display: none;
-            }
-        }
+    box-shadow:
+        0 2px 8px rgba(15,23,42,0.04);
+}
 
-    </style>
+.card-title {
+    font-size: 17px;
+
+    font-weight: 700;
+
+    margin-bottom: 15px;
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.btn {
+    border: none;
+
+    padding: 11px 17px;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: #4f46e5;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #4338ca;
+}
+
+.btn-success {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+
+/* =====================================================
+   FORMS
+===================================================== */
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+
+    font-size: 13px;
+
+    font-weight: 650;
+
+    margin-bottom: 7px;
+
+    color: #374151;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+
+    padding: 12px 13px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    outline: none;
+
+    background: white;
+
+    transition: 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #6366f1;
+
+    box-shadow:
+        0 0 0 3px rgba(99,102,241,0.12);
+}
+
+textarea {
+    min-height: 110px;
+
+    resize: vertical;
+}
+
+
+/* =====================================================
+   ALERTS
+===================================================== */
+
+.alert {
+    padding: 13px 16px;
+
+    border-radius: 10px;
+
+    margin-bottom: 20px;
+
+    font-size: 14px;
+}
+
+.alert-success {
+    background: #dcfce7;
+
+    color: #166534;
+}
+
+.alert-error {
+    background: #fee2e2;
+
+    color: #991b1b;
+}
+
+
+/* =====================================================
+   BADGES
+===================================================== */
+
+.badge {
+    display: inline-flex;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.grid {
+    display: grid;
+
+    gap: 20px;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.table-container {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+}
+
+th {
+    text-align: left;
+
+    padding: 13px;
+
+    background: #f8fafc;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 14px 13px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+.mobile-menu {
+    display: none;
+
+    border: none;
+
+    background: #f1f5f9;
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-size: 20px;
+}
+
+.sidebar-overlay {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    z-index: 999;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0;
+    }
+
+    .mobile-menu {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+    }
+
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .content {
+        padding: 15px;
+    }
+
+    .topbar {
+        min-height: 65px;
+    }
+
+    .page-title {
+        font-size: 18px;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 17px;
+
+        border-radius: 13px;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    #installButton {
+        padding: 9px 11px;
+
+        font-size: 12px;
+    }
+}
+
+</style>
+
 </head>
-
 
 <body>
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
+<!-- =====================================================
+     MOBILE OVERLAY
+===================================================== -->
 
-    <aside class="sidebar" id="sidebar">
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+    onclick="closeSidebar()">
+</div>
 
-        <div class="logo">
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
 
-            <div class="logo-icon">
-                🧠
+<aside
+    class="sidebar"
+    id="sidebar">
+
+```
+<div class="logo">
+
+    <div class="logo-icon">
+        🧠
+    </div>
+
+    <div>
+
+        <div class="logo-text">
+            LIFEOS
+        </div>
+
+        <div class="founder-text">
+            Founded by Geoffrey Kariuki
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="nav-title">
+    Main
+</div>
+
+
+<a
+    href="{{ url_for('home') }}"
+    class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+
+    <span class="nav-icon">🏠</span>
+
+    <span>Dashboard</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('tasks') }}"
+    class="nav-link {% if request.endpoint in ['tasks','complete_task','delete_task'] %}active{% endif %}">
+
+    <span class="nav-icon">📋</span>
+
+    <span>Tasks</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('goals') }}"
+    class="nav-link {% if request.endpoint in ['goals','complete_goal','delete_goal'] %}active{% endif %}">
+
+    <span class="nav-icon">🎯</span>
+
+    <span>Goals</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('calendar') }}"
+    class="nav-link {% if request.endpoint in ['calendar','delete_calendar_event'] %}active{% endif %}">
+
+    <span class="nav-icon">📅</span>
+
+    <span>Calendar</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('memory') }}"
+    class="nav-link {% if request.endpoint in ['memory','delete_memory'] %}active{% endif %}">
+
+    <span class="nav-icon">🧠</span>
+
+    <span>Life Memory</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('finance') }}"
+    class="nav-link {% if request.endpoint in ['finance','delete_transaction'] %}active{% endif %}">
+
+    <span class="nav-icon">💰</span>
+
+    <span>Finance</span>
+
+</a>
+
+
+<div
+    class="nav-title"
+    style="margin-top:25px;">
+
+    Intelligence
+
+</div>
+
+
+<a
+    href="{{ url_for('ai') }}"
+    class="nav-link {% if request.endpoint == 'ai' %}active{% endif %}">
+
+    <span class="nav-icon">🤖</span>
+
+    <span>AI Assistant</span>
+
+</a>
+
+
+<a
+    href="{{ url_for('settings') }}"
+    class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
+
+    <span class="nav-icon">⚙️</span>
+
+    <span>Settings</span>
+
+</a>
+
+
+<div class="sidebar-bottom">
+
+    {% if user %}
+
+    <div class="user-mini">
+
+        <div class="avatar">
+            {{ user.name[0]|upper }}
+        </div>
+
+        <div class="user-info">
+
+            <div class="user-name">
+                {{ user.name }}
             </div>
 
-            <div class="logo-text">
-                LIFEOS
+            <div class="user-email">
+                {{ user.email }}
             </div>
 
         </div>
 
-
-        <div class="nav-title">
-            Main
-        </div>
+    </div>
 
 
-        <a
-            href="{{ url_for('home') }}"
-            class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
-        >
-            <span class="nav-icon">🏠</span>
-            <span>Dashboard</span>
-        </a>
+    <a
+        href="{{ url_for('logout') }}"
+        class="nav-link">
+
+        <span class="nav-icon">🚪</span>
+
+        <span>Logout</span>
+
+    </a>
+
+    {% endif %}
+
+</div>
+```
+
+</aside>
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="main">
+
+<header class="topbar">
+
+```
+<div
+    style="
+        display:flex;
+        align-items:center;
+        gap:12px;
+    ">
+
+    <button
+        class="mobile-menu"
+        onclick="toggleSidebar()"
+        aria-label="Open menu">
+
+        ☰
+
+    </button>
 
 
-        <a
-            href="{{ url_for('tasks') }}"
-            class="nav-link {% if request.endpoint in ['tasks', 'complete_task', 'delete_task'] %}active{% endif %}"
-        >
-            <span class="nav-icon">📋</span>
-            <span>Tasks</span>
-        </a>
+    <div class="page-title">
+
+        {% block page_title %}
+        LIFEOS
+        {% endblock %}
+
+    </div>
+
+</div>
 
 
-        <a
-            href="{{ url_for('goals') }}"
-            class="nav-link {% if request.endpoint in ['goals', 'complete_goal', 'delete_goal'] %}active{% endif %}"
-        >
-            <span class="nav-icon">🎯</span>
-            <span>Goals</span>
-        </a>
+<div class="topbar-right">
 
 
-        <a
-            href="{{ url_for('calendar') }}"
-            class="nav-link {% if request.endpoint in ['calendar', 'delete_calendar_event'] %}active{% endif %}"
-        >
-            <span class="nav-icon">📅</span>
-            <span>Calendar</span>
-        </a>
+    <!-- INSTALL LIFEOS -->
+
+    <button
+        id="installButton"
+        type="button"
+        onclick="installLIFEOS()">
+
+        📲 Install LIFEOS
+
+    </button>
 
 
-        <a
-            href="{{ url_for('memory') }}"
-            class="nav-link {% if request.endpoint in ['memory', 'delete_memory'] %}active{% endif %}"
-        >
-            <span class="nav-icon">🧠</span>
-            <span>Life Memory</span>
-        </a>
+    <a
+        href="{{ url_for('ai') }}"
+        class="top-button"
+        title="AI Assistant">
+
+        🤖
+
+    </a>
 
 
-        <a
-            href="{{ url_for('finance') }}"
-            class="nav-link {% if request.endpoint in ['finance', 'delete_transaction'] %}active{% endif %}"
-        >
-            <span class="nav-icon">💰</span>
-            <span>Finance</span>
-        </a>
+    <a
+        href="{{ url_for('settings') }}"
+        class="top-button"
+        title="Settings">
 
+        ⚙️
 
-        <div
-            class="nav-title"
-            style="margin-top: 25px;"
-        >
-            Intelligence
-        </div>
+    </a>
 
+</div>
+```
 
-        <a
-            href="{{ url_for('ai') }}"
-            class="nav-link {% if request.endpoint == 'ai' %}active{% endif %}"
-        >
-            <span class="nav-icon">🤖</span>
-            <span>AI Assistant</span>
-        </a>
+</header>
 
+<!-- =====================================================
+     CONTENT
+===================================================== -->
 
-        <a
-            href="{{ url_for('settings') }}"
-            class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}"
-        >
-            <span class="nav-icon">⚙️</span>
-            <span>Settings</span>
-        </a>
-
-
-        <!-- =================================================
-             USER
-        ================================================== -->
-
-        <div class="sidebar-bottom">
-
-            {% if user %}
-
-            <div class="user-mini">
-
-                <div class="avatar">
-                    {{ user.name[0]|upper }}
-                </div>
-
-                <div class="user-info">
-
-                    <div class="user-name">
-                        {{ user.name }}
-                    </div>
-
-                    <div class="user-email">
-                        {{ user.email }}
-                    </div>
-
-                </div>
-
-            </div>
-
-            <a
-                href="{{ url_for('logout') }}"
-                class="nav-link"
-            >
-                <span class="nav-icon">🚪</span>
-                <span>Logout</span>
-            </a>
-
-            {% endif %}
-
-        </div>
-
-    </aside>
-
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
-    <main class="main">
-
-
-        <!-- =================================================
-             TOP BAR
-        ================================================== -->
-
-        <header class="topbar">
-
-            <div
-                style="
-                    display:flex;
-                    align-items:center;
-                    gap:12px;
-                "
-            >
-
-                <button
-                    class="mobile-menu"
-                    onclick="toggleSidebar()"
-                >
-                    ☰
-                </button>
-
-                <div class="page-title">
-
-                    {% block page_title %}
-                    LIFEOS
-                    {% endblock %}
-
-                </div>
-
-            </div>
-
-
-            <div class="topbar-right">
-
-                <a
-                    href="{{ url_for('ai') }}"
-                    class="top-button"
-                    title="AI Assistant"
-                >
-                    🤖
-                </a>
-
-                <a
-                    href="{{ url_for('settings') }}"
-                    class="top-button"
-                    title="Settings"
-                >
-                    ⚙️
-                </a>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
-             PAGE CONTENT
-        ================================================== -->
-
-        <section class="content">
 <section class="content">
 
-    {% if success %}
+```
+{% if success %}
 
-        <div class="alert alert-success">
-            ✅ {{ success }}
-        </div>
+<div class="alert alert-success">
 
-    {% endif %}
+    ✅ {{ success }}
 
+</div>
 
-    {% if error %}
-
-        <div class="alert alert-error">
-            ⚠️ {{ error }}
-        </div>
-
-    {% endif %}
+{% endif %}
 
 
-    <!-- =================================================
-     PAGE CONTENT
-================================================== -->
+{% if error %}
 
-<section class="content">
+<div class="alert alert-error">
 
-    {% if success %}
-        <div class="alert alert-success">
-            ✅ {{ success }}
-        </div>
-    {% endif %}
+    ⚠️ {{ error }}
 
-    {% if error %}
-        <div class="alert alert-error">
-            ⚠️ {{ error }}
-        </div>
-    {% endif %}
+</div>
 
-    {% block content %}
-    {% endblock %}
+{% endif %}
+
+
+{% block content %}
+{% endblock %}
+```
 
 </section>
 
-        </section>
+</main>
 
-    </main>
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script>
 
 
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
+/* =====================================================
+   SIDEBAR
+===================================================== */
 
-    <script>
+function toggleSidebar() {
 
-        function toggleSidebar() {
+    const sidebar =
+        document.getElementById("sidebar");
 
-            const sidebar =
-                document.getElementById("sidebar");
+    const overlay =
+        document.getElementById("sidebarOverlay");
 
-            sidebar.classList.toggle("open");
+    sidebar.classList.toggle("open");
+
+    overlay.classList.toggle("show");
+}
+
+
+function closeSidebar() {
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+    const overlay =
+        document.getElementById("sidebarOverlay");
+
+    sidebar.classList.remove("open");
+
+    overlay.classList.remove("show");
+}
+
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const sidebar =
+            document.getElementById("sidebar");
+
+        const button =
+            document.querySelector(".mobile-menu");
+
+        if (!sidebar || !button) {
+            return;
+        }
+
+        if (
+            window.innerWidth <= 900 &&
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !button.contains(event.target)
+        ) {
+
+            closeSidebar();
 
         }
 
+    }
+);
 
-        document.addEventListener(
-            "click",
-            function(event) {
 
-                const sidebar =
-                    document.getElementById("sidebar");
+/* =====================================================
+   PWA INSTALLATION
+===================================================== */
 
-                const button =
-                    document.querySelector(".mobile-menu");
+let deferredInstallPrompt = null;
 
-                if (
-                    window.innerWidth <= 900 &&
-                    sidebar.classList.contains("open") &&
-                    !sidebar.contains(event.target) &&
-                    !button.contains(event.target)
-                ) {
 
-                    sidebar.classList.remove("open");
+/*
+   Chrome / Edge / supported browsers
+   will send this event when LIFEOS
+   meets the install requirements.
+*/
 
-                }
+window.addEventListener(
+    "beforeinstallprompt",
+    function(event) {
 
-            }
+        event.preventDefault();
+
+        deferredInstallPrompt = event;
+
+        console.log(
+            "LIFEOS install prompt is available."
         );
 
-    </script>
+    }
+);
 
+
+/*
+   INSTALL LIFEOS
+*/
+
+async function installLIFEOS() {
+
+    /*
+       If the browser provides the real
+       installation prompt, use it.
+    */
+
+    if (deferredInstallPrompt) {
+
+        deferredInstallPrompt.prompt();
+
+        const result =
+            await deferredInstallPrompt.userChoice;
+
+        if (result.outcome === "accepted") {
+
+            console.log(
+                "LIFEOS installation accepted."
+            );
+
+        } else {
+
+            console.log(
+                "LIFEOS installation dismissed."
+            );
+
+        }
+
+        deferredInstallPrompt = null;
+
+        return;
+    }
+
+
+    /*
+       If no browser prompt is available,
+       tell the user how to install manually.
+    */
+
+    alert(
+        "LIFEOS is ready to install!\n\n" +
+        "On Chrome or Edge:\n" +
+        "1. Open the browser menu ⋮\n" +
+        "2. Look for 'Install LIFEOS' or 'Install app'\n" +
+        "3. Click Install\n\n" +
+        "On Android:\n" +
+        "Choose 'Add to Home screen'."
+    );
+
+}
+
+
+/* =====================================================
+   DETECT WHEN LIFEOS IS ALREADY INSTALLED
+===================================================== */
+
+window.addEventListener(
+    "appinstalled",
+    function() {
+
+        console.log(
+            "LIFEOS was successfully installed."
+        );
+
+        const installButton =
+            document.getElementById("installButton");
+
+        if (installButton) {
+
+            installButton.style.display = "none";
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   SERVICE WORKER
+===================================================== */
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        function() {
+
+            navigator.serviceWorker
+                .register(
+                    "{{ url_for('static', filename='service-worker.js') }}"
+                )
+                .then(
+                    function(registration) {
+
+                        console.log(
+                            "LIFEOS Service Worker registered successfully:",
+                            registration.scope
+                        );
+
+                    }
+                )
+                .catch(
+                    function(error) {
+
+                        console.error(
+                            "LIFEOS Service Worker registration failed:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+
+</script>
 
 </body>
+
 </html>

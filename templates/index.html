@@ -12,532 +12,658 @@ Dashboard
 
 <div class="dashboard">
 
-    <!-- WELCOME -->
-    <div class="card" style="margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
+```
+<!-- WELCOME -->
+<div class="card" style="margin-bottom:20px;">
 
-            <div>
-                <h1 style="font-size:28px;margin-bottom:7px;">
-                    Welcome back, {{ user.name }} 👋
-                </h1>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
 
-                <p style="color:#64748b;">
-                    Here's what's happening in your life today.
-                </p>
+        <div>
+
+            <div style="
+                font-size:12px;
+                font-weight:700;
+                color:#4f46e5;
+                text-transform:uppercase;
+                letter-spacing:1px;
+                margin-bottom:6px;
+            ">
+                LIFEOS
             </div>
 
-            <a href="{{ url_for('ai') }}" class="btn btn-primary">
-                🤖 Ask LIFEOS AI
-            </a>
+            <h1 style="font-size:28px;margin-bottom:7px;">
+                Welcome back, {{ user.name }} 👋
+            </h1>
+
+            <p style="color:#64748b;">
+                Here's what's happening in your life today.
+            </p>
+
+            <p style="
+                color:#94a3b8;
+                font-size:12px;
+                margin-top:8px;
+            ">
+                Your personal operating system for life.
+            </p>
 
         </div>
+
+        <a href="{{ url_for('ai') }}" class="btn btn-primary">
+            🤖 Ask LIFEOS AI
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- SUMMARY CARDS -->
+<div class="grid grid-4" style="margin-bottom:20px;">
+
+    <!-- TASKS -->
+    <div class="card">
+
+        <div style="font-size:28px;margin-bottom:10px;">
+            📋
+        </div>
+
+        <div style="color:#64748b;font-size:13px;">
+            Total Tasks
+        </div>
+
+        <div style="
+            font-size:30px;
+            font-weight:800;
+            margin-top:5px;
+        ">
+            {{ task_count }}
+        </div>
+
+        <a
+            href="{{ url_for('tasks') }}"
+            style="
+                font-size:13px;
+                color:#4f46e5;
+                text-decoration:none;
+            "
+        >
+            View Tasks →
+        </a>
+
     </div>
 
 
-    <!-- SUMMARY CARDS -->
-    <div class="grid grid-4" style="margin-bottom:20px;">
+    <!-- GOALS -->
+    <div class="card">
 
-        <!-- TASKS -->
-        <div class="card">
+        <div style="font-size:28px;margin-bottom:10px;">
+            🎯
+        </div>
 
-            <div style="font-size:28px;margin-bottom:10px;">
-                📋
-            </div>
+        <div style="color:#64748b;font-size:13px;">
+            Total Goals
+        </div>
 
-            <div style="color:#64748b;font-size:13px;">
-                Total Tasks
-            </div>
+        <div style="
+            font-size:30px;
+            font-weight:800;
+            margin-top:5px;
+        ">
+            {{ goal_count }}
+        </div>
 
-            <div style="font-size:30px;font-weight:800;margin-top:5px;">
-                {{ task_count }}
+        <a
+            href="{{ url_for('goals') }}"
+            style="
+                font-size:13px;
+                color:#4f46e5;
+                text-decoration:none;
+            "
+        >
+            View Goals →
+        </a>
+
+    </div>
+
+
+    <!-- INCOME -->
+    <div class="card">
+
+        <div style="font-size:28px;margin-bottom:10px;">
+            💰
+        </div>
+
+        <div style="color:#64748b;font-size:13px;">
+            Total Income
+        </div>
+
+        <div style="
+            font-size:26px;
+            font-weight:800;
+            margin-top:5px;
+            color:#16a34a;
+        ">
+            KSh {{ "%.2f"|format(income) }}
+        </div>
+
+        <a
+            href="{{ url_for('finance') }}"
+            style="
+                font-size:13px;
+                color:#4f46e5;
+                text-decoration:none;
+            "
+        >
+            View Finance →
+        </a>
+
+    </div>
+
+
+    <!-- BALANCE -->
+    <div class="card">
+
+        <div style="font-size:28px;margin-bottom:10px;">
+            📊
+        </div>
+
+        <div style="color:#64748b;font-size:13px;">
+            Current Balance
+        </div>
+
+        <div style="
+            font-size:26px;
+            font-weight:800;
+            margin-top:5px;
+
+            {% if balance >= 0 %}
+                color:#16a34a;
+            {% else %}
+                color:#dc2626;
+            {% endif %}
+        ">
+            KSh {{ "%.2f"|format(balance) }}
+        </div>
+
+        <a
+            href="{{ url_for('finance') }}"
+            style="
+                font-size:13px;
+                color:#4f46e5;
+                text-decoration:none;
+            "
+        >
+            Manage Money →
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- MAIN DASHBOARD -->
+<div class="grid grid-2">
+
+    <!-- RECENT TASKS -->
+    <div class="card">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:15px;
+        ">
+
+            <div class="card-title" style="margin-bottom:0;">
+                📋 Recent Tasks
             </div>
 
             <a
                 href="{{ url_for('tasks') }}"
-                style="font-size:13px;color:#4f46e5;text-decoration:none;"
-            >
-                View Tasks →
-            </a>
-
-        </div>
-
-
-        <!-- GOALS -->
-        <div class="card">
-
-            <div style="font-size:28px;margin-bottom:10px;">
-                🎯
-            </div>
-
-            <div style="color:#64748b;font-size:13px;">
-                Total Goals
-            </div>
-
-            <div style="font-size:30px;font-weight:800;margin-top:5px;">
-                {{ goal_count }}
-            </div>
-
-            <a
-                href="{{ url_for('goals') }}"
-                style="font-size:13px;color:#4f46e5;text-decoration:none;"
-            >
-                View Goals →
-            </a>
-
-        </div>
-
-
-        <!-- INCOME -->
-        <div class="card">
-
-            <div style="font-size:28px;margin-bottom:10px;">
-                💰
-            </div>
-
-            <div style="color:#64748b;font-size:13px;">
-                Total Income
-            </div>
-
-            <div
+                class="btn btn-secondary"
                 style="
-                    font-size:26px;
-                    font-weight:800;
-                    margin-top:5px;
-                    color:#16a34a;
+                    padding:8px 12px;
+                    font-size:12px;
                 "
             >
-                KSh {{ "%.2f"|format(income) }}
-            </div>
-
-            <a
-                href="{{ url_for('finance') }}"
-                style="font-size:13px;color:#4f46e5;text-decoration:none;"
-            >
-                View Finance →
+                View All
             </a>
 
         </div>
 
 
-        <!-- BALANCE -->
-        <div class="card">
+        {% if tasks %}
 
-            <div style="font-size:28px;margin-bottom:10px;">
-                📊
-            </div>
+            {% for task in tasks[:5] %}
 
-            <div style="color:#64748b;font-size:13px;">
-                Current Balance
-            </div>
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:13px 0;
+                    border-top:1px solid #e5e7eb;
+                    gap:10px;
+                ">
 
-            <div
-                style="
-                    font-size:26px;
-                    font-weight:800;
-                    margin-top:5px;
-                    {% if balance >= 0 %}
-                    color:#16a34a;
+                    <div>
+
+                        <div style="
+                            font-weight:600;
+
+                            {% if task.completed %}
+                                text-decoration:line-through;
+                                color:#94a3b8;
+                            {% endif %}
+                        ">
+                            {{ task.title }}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            color:#94a3b8;
+                            margin-top:3px;
+                        ">
+                            Task #{{ task.id }}
+                        </div>
+
+                    </div>
+
+
+                    {% if task.completed %}
+
+                        <span class="badge badge-success">
+                            Completed
+                        </span>
+
                     {% else %}
-                    color:#dc2626;
+
+                        <span class="badge badge-warning">
+                            Pending
+                        </span>
+
                     {% endif %}
-                "
-            >
-                KSh {{ "%.2f"|format(balance) }}
-            </div>
 
-            <a
-                href="{{ url_for('finance') }}"
-                style="font-size:13px;color:#4f46e5;text-decoration:none;"
-            >
-                Manage Money →
-            </a>
+                </div>
 
-        </div>
+            {% endfor %}
 
-    </div>
+        {% else %}
 
+            <div style="
+                text-align:center;
+                padding:35px 10px;
+                color:#94a3b8;
+            ">
 
-    <!-- MAIN DASHBOARD -->
-    <div class="grid grid-2">
+                <div style="
+                    font-size:40px;
+                    margin-bottom:10px;
+                ">
+                    📋
+                </div>
 
-        <!-- RECENT TASKS -->
-        <div class="card">
+                <div style="
+                    font-weight:600;
+                    color:#64748b;
+                ">
+                    No tasks yet
+                </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-
-                <div class="card-title" style="margin-bottom:0;">
-                    📋 Recent Tasks
+                <div style="
+                    font-size:13px;
+                    margin-top:5px;
+                ">
+                    Start by creating your first task.
                 </div>
 
                 <a
                     href="{{ url_for('tasks') }}"
-                    class="btn btn-secondary"
-                    style="padding:8px 12px;font-size:12px;"
+                    class="btn btn-primary"
+                    style="margin-top:15px;"
                 >
-                    View All
+                    + Create Task
                 </a>
 
             </div>
 
+        {% endif %}
 
-            {% if tasks %}
-
-                {% for task in tasks[:5] %}
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                            align-items:center;
-                            padding:13px 0;
-                            border-top:1px solid #e5e7eb;
-                            gap:10px;
-                        "
-                    >
-
-                        <div>
-
-                            <div
-                                style="
-                                    font-weight:600;
-                                    {% if task.completed %}
-                                    text-decoration:line-through;
-                                    color:#94a3b8;
-                                    {% endif %}
-                                "
-                            >
-                                {{ task.title }}
-                            </div>
-
-                            <div style="font-size:12px;color:#94a3b8;margin-top:3px;">
-                                Task #{{ task.id }}
-                            </div>
-
-                        </div>
+    </div>
 
 
-                        {% if task.completed %}
+    <!-- GOALS -->
+    <div class="card">
 
-                            <span class="badge badge-success">
-                                Completed
-                            </span>
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:15px;
+        ">
 
-                        {% else %}
+            <div class="card-title" style="margin-bottom:0;">
+                🎯 Your Goals
+            </div>
 
-                            <span class="badge badge-warning">
-                                Pending
-                            </span>
-
-                        {% endif %}
-
-                    </div>
-
-                {% endfor %}
-
-            {% else %}
-
-                <div
-                    style="
-                        text-align:center;
-                        padding:35px 10px;
-                        color:#94a3b8;
-                    "
-                >
-                    <div style="font-size:40px;margin-bottom:10px;">
-                        📋
-                    </div>
-
-                    <div style="font-weight:600;color:#64748b;">
-                        No tasks yet
-                    </div>
-
-                    <div style="font-size:13px;margin-top:5px;">
-                        Start by creating your first task.
-                    </div>
-
-                    <a
-                        href="{{ url_for('tasks') }}"
-                        class="btn btn-primary"
-                        style="margin-top:15px;"
-                    >
-                        + Create Task
-                    </a>
-
-                </div>
-
-            {% endif %}
+            <a
+                href="{{ url_for('goals') }}"
+                class="btn btn-secondary"
+                style="
+                    padding:8px 12px;
+                    font-size:12px;
+                "
+            >
+                View All
+            </a>
 
         </div>
 
 
-        <!-- GOALS -->
-        <div class="card">
+        {% if goals %}
 
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            {% for goal in goals[:5] %}
 
-                <div class="card-title" style="margin-bottom:0;">
-                    🎯 Your Goals
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:13px 0;
+                    border-top:1px solid #e5e7eb;
+                    gap:10px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-weight:600;
+
+                            {% if goal.completed %}
+                                text-decoration:line-through;
+                                color:#94a3b8;
+                            {% endif %}
+                        ">
+                            {{ goal.title }}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            color:#94a3b8;
+                            margin-top:3px;
+                        ">
+                            Goal #{{ goal.id }}
+                        </div>
+
+                    </div>
+
+
+                    {% if goal.completed %}
+
+                        <span class="badge badge-success">
+                            Completed
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge badge-info">
+                            In Progress
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div style="
+                text-align:center;
+                padding:35px 10px;
+                color:#94a3b8;
+            ">
+
+                <div style="
+                    font-size:40px;
+                    margin-bottom:10px;
+                ">
+                    🎯
+                </div>
+
+                <div style="
+                    font-weight:600;
+                    color:#64748b;
+                ">
+                    No goals yet
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    margin-top:5px;
+                ">
+                    Define something you want to achieve.
                 </div>
 
                 <a
                     href="{{ url_for('goals') }}"
-                    class="btn btn-secondary"
-                    style="padding:8px 12px;font-size:12px;"
+                    class="btn btn-primary"
+                    style="margin-top:15px;"
                 >
-                    View All
+                    + Create Goal
                 </a>
 
             </div>
 
+        {% endif %}
 
-            {% if goals %}
+    </div>
 
-                {% for goal in goals[:5] %}
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                            align-items:center;
-                            padding:13px 0;
-                            border-top:1px solid #e5e7eb;
-                            gap:10px;
-                        "
-                    >
-
-                        <div>
-
-                            <div
-                                style="
-                                    font-weight:600;
-                                    {% if goal.completed %}
-                                    text-decoration:line-through;
-                                    color:#94a3b8;
-                                    {% endif %}
-                                "
-                            >
-                                {{ goal.title }}
-                            </div>
-
-                            <div style="font-size:12px;color:#94a3b8;margin-top:3px;">
-                                Goal #{{ goal.id }}
-                            </div>
-
-                        </div>
+</div>
 
 
-                        {% if goal.completed %}
+<!-- FINANCE OVERVIEW -->
+<div class="card" style="margin-top:20px;">
 
-                            <span class="badge badge-success">
-                                Completed
-                            </span>
+    <div class="card-title">
+        💰 Financial Overview
+    </div>
 
-                        {% else %}
+    <div class="grid grid-3">
 
-                            <span class="badge badge-info">
-                                In Progress
-                            </span>
+        <div style="
+            padding:20px;
+            background:#f0fdf4;
+            border-radius:12px;
+        ">
 
-                        {% endif %}
+            <div style="
+                font-size:13px;
+                color:#64748b;
+            ">
+                Income
+            </div>
 
-                    </div>
+            <div style="
+                font-size:24px;
+                font-weight:800;
+                color:#16a34a;
+                margin-top:5px;
+            ">
+                KSh {{ "%.2f"|format(income) }}
+            </div>
 
-                {% endfor %}
+        </div>
 
-            {% else %}
 
-                <div
-                    style="
-                        text-align:center;
-                        padding:35px 10px;
-                        color:#94a3b8;
-                    "
-                >
-                    <div style="font-size:40px;margin-bottom:10px;">
-                        🎯
-                    </div>
+        <div style="
+            padding:20px;
+            background:#fef2f2;
+            border-radius:12px;
+        ">
 
-                    <div style="font-weight:600;color:#64748b;">
-                        No goals yet
-                    </div>
+            <div style="
+                font-size:13px;
+                color:#64748b;
+            ">
+                Expenses
+            </div>
 
-                    <div style="font-size:13px;margin-top:5px;">
-                        Define something you want to achieve.
-                    </div>
+            <div style="
+                font-size:24px;
+                font-weight:800;
+                color:#dc2626;
+                margin-top:5px;
+            ">
+                KSh {{ "%.2f"|format(expenses) }}
+            </div>
 
-                    <a
-                        href="{{ url_for('goals') }}"
-                        class="btn btn-primary"
-                        style="margin-top:15px;"
-                    >
-                        + Create Goal
-                    </a>
+        </div>
 
-                </div>
 
-            {% endif %}
+        <div style="
+            padding:20px;
+            background:#eff6ff;
+            border-radius:12px;
+        ">
+
+            <div style="
+                font-size:13px;
+                color:#64748b;
+            ">
+                Balance
+            </div>
+
+            <div style="
+                font-size:24px;
+                font-weight:800;
+                color:#2563eb;
+                margin-top:5px;
+            ">
+                KSh {{ "%.2f"|format(balance) }}
+            </div>
 
         </div>
 
     </div>
 
 
-    <!-- FINANCE OVERVIEW -->
-    <div class="card" style="margin-top:20px;">
+    <div style="margin-top:20px;">
 
-        <div class="card-title">
-            💰 Financial Overview
-        </div>
-
-        <div class="grid grid-3">
-
-            <div
-                style="
-                    padding:20px;
-                    background:#f0fdf4;
-                    border-radius:12px;
-                "
-            >
-                <div style="font-size:13px;color:#64748b;">
-                    Income
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:800;
-                        color:#16a34a;
-                        margin-top:5px;
-                    "
-                >
-                    KSh {{ "%.2f"|format(income) }}
-                </div>
-            </div>
-
-
-            <div
-                style="
-                    padding:20px;
-                    background:#fef2f2;
-                    border-radius:12px;
-                "
-            >
-                <div style="font-size:13px;color:#64748b;">
-                    Expenses
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:800;
-                        color:#dc2626;
-                        margin-top:5px;
-                    "
-                >
-                    KSh {{ "%.2f"|format(expenses) }}
-                </div>
-            </div>
-
-
-            <div
-                style="
-                    padding:20px;
-                    background:#eff6ff;
-                    border-radius:12px;
-                "
-            >
-                <div style="font-size:13px;color:#64748b;">
-                    Balance
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:800;
-                        color:#2563eb;
-                        margin-top:5px;
-                    "
-                >
-                    KSh {{ "%.2f"|format(balance) }}
-                </div>
-            </div>
-
-        </div>
-
-        <div style="margin-top:20px;">
-
-            <a
-                href="{{ url_for('finance') }}"
-                class="btn btn-primary"
-            >
-                Open Finance
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <!-- QUICK ACTIONS -->
-    <div class="card" style="margin-top:20px;">
-
-        <div class="card-title">
-            ⚡ Quick Actions
-        </div>
-
-        <div
-            style="
-                display:flex;
-                gap:10px;
-                flex-wrap:wrap;
-            "
+        <a
+            href="{{ url_for('finance') }}"
+            class="btn btn-primary"
         >
-
-            <a
-                href="{{ url_for('tasks') }}"
-                class="btn btn-primary"
-            >
-                📋 Add Task
-            </a>
-
-            <a
-                href="{{ url_for('goals') }}"
-                class="btn btn-primary"
-            >
-                🎯 Add Goal
-            </a>
-
-            <a
-                href="{{ url_for('calendar') }}"
-                class="btn btn-primary"
-            >
-                📅 Add Event
-            </a>
-
-            <a
-                href="{{ url_for('memory') }}"
-                class="btn btn-primary"
-            >
-                🧠 Save Memory
-            </a>
-
-            <a
-                href="{{ url_for('finance') }}"
-                class="btn btn-success"
-            >
-                💰 Add Transaction
-            </a>
-
-            <a
-                href="{{ url_for('ai') }}"
-                class="btn btn-secondary"
-            >
-                🤖 Ask AI
-            </a>
-
-        </div>
+            Open Finance
+        </a>
 
     </div>
+
+</div>
+
+
+<!-- QUICK ACTIONS -->
+<div class="card" style="margin-top:20px;">
+
+    <div class="card-title">
+        ⚡ Quick Actions
+    </div>
+
+    <div style="
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    ">
+
+        <a
+            href="{{ url_for('tasks') }}"
+            class="btn btn-primary"
+        >
+            📋 Add Task
+        </a>
+
+        <a
+            href="{{ url_for('goals') }}"
+            class="btn btn-primary"
+        >
+            🎯 Add Goal
+        </a>
+
+        <a
+            href="{{ url_for('calendar') }}"
+            class="btn btn-primary"
+        >
+            📅 Add Event
+        </a>
+
+        <a
+            href="{{ url_for('memory') }}"
+            class="btn btn-primary"
+        >
+            🧠 Save Memory
+        </a>
+
+        <a
+            href="{{ url_for('finance') }}"
+            class="btn btn-success"
+        >
+            💰 Add Transaction
+        </a>
+
+        <a
+            href="{{ url_for('ai') }}"
+            class="btn btn-secondary"
+        >
+            🤖 Ask AI
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- LIFEOS FOOTER -->
+<div style="
+    text-align:center;
+    padding:30px 15px 10px;
+    color:#94a3b8;
+    font-size:12px;
+">
+
+    <div style="
+        font-size:14px;
+        font-weight:700;
+        color:#64748b;
+        margin-bottom:5px;
+    ">
+        LIFEOS
+    </div>
+
+    <div>
+        Your personal operating system for life.
+    </div>
+
+    <div style="margin-top:8px;">
+        Created by
+        <strong style="color:#4f46e5;">
+            Geoffrey Kariuki
+        </strong>
+    </div>
+
+    <div style="
+        margin-top:5px;
+        font-size:11px;
+    ">
+        © 2026 LIFEOS. All rights reserved.
+    </div>
+
+</div>
+```
 
 </div>
 
