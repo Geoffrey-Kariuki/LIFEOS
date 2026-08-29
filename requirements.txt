@@ -42,3 +42,4 @@ urllib3==2.5.0
 webencodings==0.6.1
 Werkzeug==3.1.8
 yagmail==0.15.293
+psycopg2-binary==2.9.10
